@@ -4,8 +4,8 @@ import "sync"
 
 // Codec
 type Codec interface {
-	Encode([]byte) ([]byte, error)
-	Decode([]byte) ([]byte, error)
+	Encode(Msg, []byte) ([]byte, error)
+	Decode(Msg, []byte) ([]byte, error)
 }
 
 var (
@@ -22,7 +22,7 @@ func RegisterCodeC(name string, codec Codec) {
 	codecMap[name] = codec
 }
 
-func GetCodeC(name string) Codec {
+func Get(name string) Codec {
 	if codec, ok := codecMap[name]; ok {
 		return codec
 	}
@@ -37,10 +37,10 @@ var NewDefaultCodec = func() Codec {
 
 type codec struct{}
 
-func (cc *codec) Encode([]byte) ([]byte, error) {
+func (cc *codec) Encode(msg Msg, bytes []byte) ([]byte, error) {
 	return nil, nil
 }
 
-func (cc *codec) Decode([]byte) ([]byte, error) {
+func (cc *codec) Decode(msg Msg, bytes []byte) ([]byte, error) {
 	return nil, nil
 }

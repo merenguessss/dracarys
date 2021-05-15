@@ -1,14 +1,14 @@
 package plugin
 
-type factory struct {
+type Factory struct {
 }
 
-var PluginsFactory = New()
+var DefaultFactory = New()
 
-var New = func() *factory {
-	return &factory{}
+var New = func() *Factory {
+	return &Factory{}
 }
 
-func (f *factory) Init() {
+func (f *Factory) Init() {
 
 }
