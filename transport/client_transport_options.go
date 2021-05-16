@@ -1,12 +1,15 @@
 package transport
 
-import "github.com/merenguessss/Dracarys-go/pool"
+import (
+	"github.com/merenguessss/Dracarys-go/pool/conn_pool"
+)
 
 type ClientOptions struct {
 	Addr              string
 	Network           Network
-	pool              pool.ConnPool
+	pool              conn_pool.ConnPool
 	EnableMultiplexed bool
+	DisableConnPool   bool
 }
 
 type ClientOption func(*ClientOptions)
@@ -23,7 +26,7 @@ func WithNetWork(network Network) ClientOption {
 	}
 }
 
-func WithConnPool(connPool pool.ConnPool) ClientOption {
+func WithConnPool(connPool conn_pool.ConnPool) ClientOption {
 	return func(options *ClientOptions) {
 		options.pool = connPool
 	}
