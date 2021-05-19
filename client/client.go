@@ -2,9 +2,11 @@ package client
 
 import (
 	"context"
+
 	"github.com/merenguessss/Dracarys-go/codec"
 	"github.com/merenguessss/Dracarys-go/interceptor"
 	"github.com/merenguessss/Dracarys-go/serialization"
+	"github.com/merenguessss/Dracarys-go/transport"
 )
 
 type Client interface {
@@ -38,15 +40,29 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 
 	msg := codec.Msg{}
 	coder := codec.Get(c.option.codecType)
-	//reqBody,err := coder.Decode(msg,reqBuf)
+	reqBody, err := coder.Decode(msg, reqBuf)
 	_, err = coder.Decode(msg, reqBuf)
 	if err != nil {
 		return err
 	}
 
-	//addr := c.findAddress()
+	addr := c.findAddress()
+
+	transportOption := []transport.ClientOption{
+		transport.WithAddr(addr),
+		transport.WithDisableConnPool(c.option.DisableConnPool),
+		transport.WithEnableMultiplexed(c.option.EnableMultiplexed),
+		transport.WithNetWork(transport.Network(c.option.NetWork)),
+	}
+	clientTransport := c.NewClientTransport()
+
+	_, err = clientTransport.Send(ctx, reqBody, transportOption...)
 
 	return nil
+}
+
+func (c *defaultClient) NewClientTransport() transport.ClientTransport {
+	return transport.GetClientTransport("default")
 }
 
 func (c *defaultClient) findAddress() string {

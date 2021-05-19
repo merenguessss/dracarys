@@ -6,14 +6,17 @@ import (
 )
 
 type Options struct {
-	ServiceName    string
-	MethodName     string
-	Addr           string
-	PluginFactory  plugin.Factory
-	beforeHandle   []interceptor.Interceptor
-	afterHandle    []interceptor.Interceptor
-	serializerType string
-	codecType      string
+	ServiceName       string
+	MethodName        string
+	Addr              string
+	PluginFactory     plugin.Factory
+	beforeHandle      []interceptor.Interceptor
+	afterHandle       []interceptor.Interceptor
+	serializerType    string
+	codecType         string
+	EnableMultiplexed bool
+	DisableConnPool   bool
+	NetWork           string
 }
 
 type Option func(*Options)
