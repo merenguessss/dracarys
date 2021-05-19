@@ -7,7 +7,7 @@ import (
 type ClientOptions struct {
 	Addr              string
 	Network           Network
-	pool              conn_pool.ConnPool
+	pool              conn_pool.Pool
 	EnableMultiplexed bool
 	DisableConnPool   bool
 }
@@ -26,7 +26,7 @@ func WithNetWork(network Network) ClientOption {
 	}
 }
 
-func WithConnPool(connPool conn_pool.ConnPool) ClientOption {
+func WithConnPool(connPool conn_pool.Pool) ClientOption {
 	return func(options *ClientOptions) {
 		options.pool = connPool
 	}

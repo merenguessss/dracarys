@@ -3,6 +3,10 @@ package transport
 import (
 	"context"
 	"errors"
+	"net"
+	"time"
+
+	"github.com/merenguessss/Dracarys-go/pool/conn_pool"
 )
 
 func init() {
@@ -33,7 +37,11 @@ var DefaultClientTransport = NewDefault()
 
 // NewDefault 默认ClientTransport的创建函数.
 var NewDefault = func() ClientTransport {
-	return &defaultClientTransport{}
+	return &defaultClientTransport{
+		clientOptions: &ClientOptions{
+			pool: conn_pool.DefaultConnPool,
+		},
+	}
 }
 
 // defaultClientTransport 一个默认的ClientTransport.
@@ -68,7 +76,47 @@ func (ct *defaultClientTransport) multiplexed(ctx context.Context, req []byte) e
 
 // sendTCP 发送TCP消息.
 func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) error {
+	var conn net.Conn
+	var err error
+	address := ct.clientOptions.Addr
+	network := string(ct.clientOptions.Network)
+	var timeout time.Duration
 
+	t, ok := ctx.Deadline()
+	if ok {
+		timeout = t.Sub(time.Now())
+	}
+	if ct.clientOptions.DisableConnPool {
+		conn, err = net.DialTimeout(network, address, timeout)
+		if err != nil {
+			return errors.New("direct connect error :" + err.Error())
+		}
+	} else {
+		conn, err = ct.clientOptions.pool.Get(ctx, network, address)
+		if err != nil {
+			return errors.New("connection pool error :" + err.Error())
+		}
+	}
+	defer conn.Close()
+
+	// 发送消息
+	sendNum := 0
+	addNum := 0
+	for sendNum < len(req) {
+		addNum, err = conn.Write(req[sendNum:])
+		if err != nil {
+			return err
+		}
+		sendNum += addNum
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+	}
+
+	// TODO 接收消息 Framer
 	return nil
 }
 
