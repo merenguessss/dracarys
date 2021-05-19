@@ -1,4 +1,4 @@
-package pool
+package work_pool
 
 import (
 	"net"
