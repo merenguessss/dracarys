@@ -16,8 +16,23 @@ var (
 
 var DefaultConnPool = newDefaultPool()
 
-var newDefaultPool = func() Pool {
-	return &pool{}
+var newDefaultPool = func(options ...Option) Pool {
+	opts := &Options{
+		MaxIdle:     100,
+		MaxActive:   10,
+		CoreIdle:    10,
+		Wait:        true,
+		IdleTimeout: 1 * time.Minute,
+		DialTimeout: 200 * time.Millisecond,
+	}
+	for _, o := range options {
+		o(opts)
+	}
+
+	return &pool{
+		opts:    opts,
+		connMap: &sync.Map{},
+	}
 }
 
 var poolMap = make(map[string]Pool)
@@ -39,7 +54,7 @@ type Pool interface {
 
 type pool struct {
 	opts    *Options
-	connMap sync.Map
+	connMap *sync.Map
 }
 
 // Get 连接池对外接口.
