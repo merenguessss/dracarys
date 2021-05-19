@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/merenguessss/Dracarys-go/codec"
 	"github.com/merenguessss/Dracarys-go/pool/conn_pool"
 )
 
@@ -50,7 +51,7 @@ type defaultClientTransport struct {
 }
 
 // Send 默认客户端发送消息到服务端.
-func (ct *defaultClientTransport) Send(ctx context.Context, req []byte, options ...ClientOption) error {
+func (ct *defaultClientTransport) Send(ctx context.Context, req []byte, options ...ClientOption) ([]byte, error) {
 	for _, v := range options {
 		v(ct.clientOptions)
 	}
@@ -66,21 +67,22 @@ func (ct *defaultClientTransport) Send(ctx context.Context, req []byte, options 
 	if ct.clientOptions.Network == UDP {
 		return ct.sendUDP(ctx, req)
 	}
-	return errors.New("network not support")
+	return nil, errors.New("network not support")
 }
 
 // multiplexed 客户端多路复用连接实现.
-func (ct *defaultClientTransport) multiplexed(ctx context.Context, req []byte) error {
-	return nil
+func (ct *defaultClientTransport) multiplexed(ctx context.Context, req []byte) ([]byte, error) {
+	return nil, nil
 }
 
 // sendTCP 发送TCP消息.
-func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) error {
+func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) ([]byte, error) {
 	var conn net.Conn
 	var err error
 	address := ct.clientOptions.Addr
 	network := string(ct.clientOptions.Network)
 	var timeout time.Duration
+	var rep []byte
 
 	t, ok := ctx.Deadline()
 	if ok {
@@ -89,12 +91,12 @@ func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) error
 	if ct.clientOptions.DisableConnPool {
 		conn, err = net.DialTimeout(network, address, timeout)
 		if err != nil {
-			return errors.New("direct connect error :" + err.Error())
+			return nil, errors.New("direct connect error :" + err.Error())
 		}
 	} else {
 		conn, err = ct.clientOptions.pool.Get(ctx, network, address)
 		if err != nil {
-			return errors.New("connection pool error :" + err.Error())
+			return nil, errors.New("connection pool error :" + err.Error())
 		}
 	}
 	defer conn.Close()
@@ -105,22 +107,27 @@ func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) error
 	for sendNum < len(req) {
 		addNum, err = conn.Write(req[sendNum:])
 		if err != nil {
-			return err
+			return nil, err
 		}
 		sendNum += addNum
 
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return nil, ctx.Err()
 		default:
 		}
 	}
 
+	framer := codec.DefaultFramerBuilder.New(conn)
+	rep, err = framer.ReadFrame()
+	if err != nil {
+		return nil, err
+	}
 	// TODO 接收消息 Framer
-	return nil
+	return rep, nil
 }
 
 // sendUDP 发送UDP消息.
-func (ct *defaultClientTransport) sendUDP(ctx context.Context, req []byte) error {
-	return nil
+func (ct *defaultClientTransport) sendUDP(ctx context.Context, req []byte) ([]byte, error) {
+	return nil, nil
 }

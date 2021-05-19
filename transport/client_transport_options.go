@@ -31,3 +31,15 @@ func WithConnPool(connPool conn_pool.Pool) ClientOption {
 		options.pool = connPool
 	}
 }
+
+func WithEnableMultiplexed(enableMultiplexed bool) ClientOption {
+	return func(options *ClientOptions) {
+		options.EnableMultiplexed = enableMultiplexed
+	}
+}
+
+func WithDisableConnPool(disableConnPool bool) ClientOption {
+	return func(options *ClientOptions) {
+		options.DisableConnPool = disableConnPool
+	}
+}
