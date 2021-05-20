@@ -38,7 +38,7 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 		return err
 	}
 
-	msg := codec.Msg{}
+	msg := codec.MsgBuilder.Default()
 	coder := codec.Get(c.option.codecType)
 	reqBody, err := coder.Decode(msg, reqBuf)
 	_, err = coder.Decode(msg, reqBuf)
