@@ -2,14 +2,16 @@ package codec
 
 type MessageBuilder interface {
 	Default() Msg
-	WithSerializerType(string) Msg
-	WithCompressType(uint8) Msg
-	WithPackageType(uint8) Msg
-	WithMsgType(uint8) Msg
-	WithReqType(uint8) Msg
-	WithClientServiceName(string) Msg
-	WithServerServiceName(string) Msg
-	WithRPCMethodName(string) Msg
+	WithSerializerType(string) MessageBuilder
+	WithCompressType(uint8) MessageBuilder
+	WithPackageType(uint8) MessageBuilder
+	WithMsgType(uint8) MessageBuilder
+	WithReqType(uint8) MessageBuilder
+	WithClientServiceName(string) MessageBuilder
+	WithServerServiceName(string) MessageBuilder
+	WithRPCMethodName(string) MessageBuilder
+	WithRetCode(uint32) MessageBuilder
+	WithRetMsg(string) MessageBuilder
 	Build() Msg
 }
 
@@ -63,6 +65,21 @@ func (mb *messageBuilder) WithRPCMethodName(mn string) *messageBuilder {
 	return mb
 }
 
+func (mb *messageBuilder) WithRequestID(id uint8) *messageBuilder {
+	mb.msg.WithRequestID(id)
+	return mb
+}
+
+func (mb *messageBuilder) WithRetCode(code uint32) *messageBuilder {
+	mb.msg.WithRetCode(code)
+	return mb
+}
+
+func (mb *messageBuilder) WithRetMsg(msg string) *messageBuilder {
+	mb.msg.WithRetMsg(msg)
+	return mb
+}
+
 // TODO msg
 type Msg interface {
 	SerializerType() string
@@ -73,6 +90,9 @@ type Msg interface {
 	ClientServiceName() string
 	ServerServiceName() string
 	RPCMethodName() string
+	RequestID() uint8
+	RetCode() uint32
+	RetMsg() string
 
 	WithSerializerType(string)
 	WithCompressType(uint8)
@@ -82,6 +102,9 @@ type Msg interface {
 	WithClientServiceName(string)
 	WithServerServiceName(string)
 	WithRPCMethodName(string)
+	WithRequestID(uint8)
+	WithRetCode(uint32)
+	WithRetMsg(string)
 }
 
 type msg struct {
@@ -90,6 +113,9 @@ type msg struct {
 	packageType       uint8
 	msgType           uint8
 	reqType           uint8
+	requestID         uint8
+	retCode           uint32
+	retMsg            string
 	clientServiceName string
 	serverServiceName string
 	rpcMethodName     string
@@ -113,6 +139,18 @@ func (m *msg) MsgType() uint8 {
 
 func (m *msg) ReqType() uint8 {
 	return m.reqType
+}
+
+func (m *msg) RequestID() uint8 {
+	return m.requestID
+}
+
+func (m *msg) RetCode() uint32 {
+	return m.retCode
+}
+
+func (m *msg) RetMsg() string {
+	return m.retMsg
 }
 
 func (m *msg) ClientServiceName() string {
@@ -157,4 +195,16 @@ func (m *msg) WithServerServiceName(s string) {
 
 func (m *msg) WithRPCMethodName(s string) {
 	m.rpcMethodName = s
+}
+
+func (m *msg) WithRequestID(u uint8) {
+	m.requestID = u
+}
+
+func (m *msg) WithRetCode(code uint32) {
+	m.retCode = code
+}
+
+func (m *msg) WithRetMsg(rm string) {
+	m.retMsg = rm
 }
