@@ -11,7 +11,7 @@ message Request{
 }
 
 message Response{
-  string ret_code = 1; // 错误码   成功请求为 0
+  uint32 ret_code = 1; // 错误码   成功请求为 0
   uint32 request_id = 2; // 一次请求的唯一ID
   string ret_msg = 3;  // 错误消息  成功为success，错误会返回错误信息
   map<string,bytes> metadata = 4; // 传递的数据
