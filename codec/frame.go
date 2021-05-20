@@ -63,11 +63,6 @@ func (f *framer) ReadFrame() ([]byte, error) {
 const DefaultBufferLength = 1024
 const MaxPayloadLength = 4 * 1024 * 1024
 
-type FrameType uint8
-type MsgType uint8
-type ReqType uint8
-type CompressType uint8
-
 // FrameHeader 帧头.
 type FrameHeader struct {
 	// Magic 魔数.
@@ -75,15 +70,15 @@ type FrameHeader struct {
 	// Version 版本号.
 	Version uint8
 	// MsgType 消息类型.
-	MsgType MsgType
+	MsgType uint8
 	// ReqType 请求类型.
-	ReqType ReqType
+	ReqType uint8
 	// CompressType 压缩类型.
-	CompressType CompressType
+	CompressType uint8
 	// StreamID 暂时没用，后续扩展.
 	StreamID uint8
-	// FrameType 用于帧解析出Header.
-	FrameType FrameType
+	// PackageType 用于包头压缩类型
+	PackageType uint8
 	// Length 帧长度.
 	Length uint32
 	// Reserved 保留位.
@@ -95,22 +90,22 @@ const Version = 0
 const FrameHeaderLen = 15
 
 const (
-	Proto FrameType = iota
+	Proto = iota
 	Thrift
 	arvo
 )
 
 const (
-	NoneCompress CompressType = iota
+	NoneCompress = iota
 )
 
 const (
-	GeneralMsg MsgType = 0x0
-	HeartMsg   MsgType = 0x1
+	GeneralMsg = 0x0
+	HeartMsg   = 0x1
 )
 
 const (
-	SendAndRecv ReqType = iota
+	SendAndRecv = iota
 	SendOnly
 	LongConn
 	StreamTrans

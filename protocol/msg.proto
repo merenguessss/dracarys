@@ -3,8 +3,9 @@ package protocol;
 option go_package="github.com/merenguessss/Dracarys-go/protocol";
 
 message Request{
-  uint32 request_id = 2; // 一次请求的唯一ID
-  string service_name = 3; // 服务名
+  uint32 request_id = 1; // 一次请求的唯一ID
+  string service_name = 2; // 服务名
+  string method_name = 3; // 方法名
   map<string,bytes> metadata = 4; // 传递的数据
   bytes payload = 5; // body
 }

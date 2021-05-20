@@ -38,6 +38,10 @@ var NewDefaultCodec = func() Codec {
 type codec struct{}
 
 func (cc *codec) Encode(msg Msg, bytes []byte) ([]byte, error) {
+
+	if msg.CompressType() != NoneCompress {
+
+	}
 	return nil, nil
 }
 
