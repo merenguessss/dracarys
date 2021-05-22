@@ -7,12 +7,13 @@ import (
 )
 
 type Service interface {
-	Register(serviceDesc interface{}, serviceImpl interface{}) error
+	Register(methodName, method FilterFunc)
 	Serve() error
 	Close() error
 }
 
 type ServiceDesc struct {
+	Svr         interface{}
 	ServiceName string
 	HandlerType interface{}
 	Methods     []*Method
@@ -28,14 +29,18 @@ type FilterFunc func(svr interface{}, ctx context.Context, parse func(interface{
 type service struct {
 	ctx         context.Context
 	serviceName string
-	handle      map[string]FilterFunc
+	handles     map[string]FilterFunc
 }
 
-func (s *service) Register(serviceDesc interface{}, serviceImpl interface{}) error {
-	return nil
+func (s *service) Register(methodName string, method FilterFunc) {
+	if s.handles == nil {
+		s.handles = make(map[string]FilterFunc)
+	}
+	s.handles[methodName] = method
 }
 
 func (s *service) Serve() error {
+
 	return nil
 }
 
