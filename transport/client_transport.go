@@ -34,10 +34,10 @@ func GetClientTransport(name string) ClientTransport {
 }
 
 // 默认 ClientTransport
-var DefaultClientTransport = NewDefault()
+var DefaultClientTransport = NewClientDefault()
 
 // NewDefault 默认ClientTransport的创建函数.
-var NewDefault = func() ClientTransport {
+var NewClientDefault = func() ClientTransport {
 	return &defaultClientTransport{
 		clientOptions: &ClientOptions{
 			pool: conn_pool.DefaultConnPool,
