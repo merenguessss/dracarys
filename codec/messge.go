@@ -15,7 +15,9 @@ type MessageBuilder interface {
 	Build() Msg
 }
 
-var MsgBuilder = &messageBuilder{}
+var MsgBuilder = &messageBuilder{
+	msg: &msg{},
+}
 
 type messageBuilder struct {
 	msg Msg
@@ -78,6 +80,10 @@ func (mb *messageBuilder) WithRetCode(code uint32) *messageBuilder {
 func (mb *messageBuilder) WithRetMsg(msg string) *messageBuilder {
 	mb.msg.WithRetMsg(msg)
 	return mb
+}
+
+func (mb *messageBuilder) Build() Msg {
+	return mb.msg
 }
 
 // TODO msg
