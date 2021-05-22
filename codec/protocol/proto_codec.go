@@ -10,6 +10,7 @@ import (
 
 func init() {
 	RegisterClientCodec(codec.Proto, &pbClientCodec{})
+	RegisterServerCodec(codec.Proto, &pbServerCodec{})
 }
 
 var clientMap = make(map[uint8]codec.Codec)
