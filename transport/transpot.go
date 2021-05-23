@@ -37,4 +37,5 @@ func sendTCPMsg(ctx context.Context, conn net.Conn, b []byte) (err error) {
 		default:
 		}
 	}
+	return nil
 }
