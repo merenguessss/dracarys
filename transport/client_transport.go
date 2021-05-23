@@ -34,10 +34,10 @@ func GetClientTransport(name string) ClientTransport {
 }
 
 // 默认 ClientTransport
-var DefaultClientTransport = NewDefault()
+var DefaultClientTransport = NewClientDefault()
 
 // NewDefault 默认ClientTransport的创建函数.
-var NewDefault = func() ClientTransport {
+var NewClientDefault = func() ClientTransport {
 	return &defaultClientTransport{
 		clientOptions: &ClientOptions{
 			pool: conn_pool.DefaultConnPool,
@@ -86,7 +86,7 @@ func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) ([]by
 
 	t, ok := ctx.Deadline()
 	if ok {
-		timeout = t.Sub(time.Now())
+		timeout = time.Until(t)
 	}
 	if ct.clientOptions.DisableConnPool {
 		conn, err = net.DialTimeout(network, address, timeout)
@@ -102,20 +102,9 @@ func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) ([]by
 	defer conn.Close()
 
 	// 发送消息
-	sendNum := 0
-	addNum := 0
-	for sendNum < len(req) {
-		addNum, err = conn.Write(req[sendNum:])
-		if err != nil {
-			return nil, err
-		}
-		sendNum += addNum
-
-		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		default:
-		}
+	err = sendTCPMsg(ctx, conn, req)
+	if err != nil {
+		return nil, err
 	}
 
 	framer := codec.DefaultFramerBuilder.New(conn)
