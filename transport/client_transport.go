@@ -86,7 +86,7 @@ func (ct *defaultClientTransport) sendTCP(ctx context.Context, req []byte) ([]by
 
 	t, ok := ctx.Deadline()
 	if ok {
-		timeout = t.Sub(time.Now())
+		timeout = time.Until(t)
 	}
 	if ct.clientOptions.DisableConnPool {
 		conn, err = net.DialTimeout(network, address, timeout)
