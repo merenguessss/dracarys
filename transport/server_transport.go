@@ -126,8 +126,9 @@ func (st *defaultServerTransport) serve(ctx context.Context, lis net.Listener) e
 	}
 }
 
-func (st *defaultServerTransport) handleConn(ctx context.Context, conn net.Conn) error {
-
+// handleConn 处理连接，无限循环从连接中读入内容，再通过ServerTransport中的Handle接口处理请求，最后完成返回.
+func (st *defaultServerTransport) handleConn(ctx context.Context, conn net.Conn) (err error) {
+	var req, rep []byte
 	defer conn.Close()
 	for {
 		select {
@@ -136,12 +137,24 @@ func (st *defaultServerTransport) handleConn(ctx context.Context, conn net.Conn)
 		default:
 		}
 
+		// 读请求
 		framer := codec.DefaultFramerBuilder.New(conn)
-		req, err := framer.ReadFrame()
+		req, err = framer.ReadFrame()
 		if err != nil {
 			return errors.New("read frame error  " + err.Error())
 		}
 
+		// 执行函数
+		rep, err = st.serverOptions.handler.handle(ctx, req)
+		if err != nil {
+			return errors.New("handle req error " + err.Error())
+		}
+
+		// 返回数据
+		err = sendTCPMsg(ctx, conn, rep)
+		if err != nil {
+			return errors.New("return rep error " + err.Error())
+		}
 	}
 }
 
