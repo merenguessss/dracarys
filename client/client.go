@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
-	"github.com/merenguessss/Dracarys-go/codec"
-	"github.com/merenguessss/Dracarys-go/interceptor"
-	"github.com/merenguessss/Dracarys-go/serialization"
-	"github.com/merenguessss/Dracarys-go/transport"
+	"github.com/merenguessss/dracarys-go/codec"
+	"github.com/merenguessss/dracarys-go/interceptor"
+	"github.com/merenguessss/dracarys-go/serialization"
+	"github.com/merenguessss/dracarys-go/transport"
 )
 
 type Client interface {

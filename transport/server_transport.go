@@ -7,7 +7,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/merenguessss/Dracarys-go/codec"
+	"github.com/merenguessss/dracarys-go/codec"
 )
 
 func init() {

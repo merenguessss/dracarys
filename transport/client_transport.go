@@ -6,8 +6,8 @@ import (
 	"net"
 	"time"
 
-	"github.com/merenguessss/Dracarys-go/codec"
-	"github.com/merenguessss/Dracarys-go/pool/conn_pool"
+	"github.com/merenguessss/dracarys-go/codec"
+	"github.com/merenguessss/dracarys-go/pool/conn_pool"
 )
 
 func init() {

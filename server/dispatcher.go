@@ -3,8 +3,8 @@ package server
 import (
 	"context"
 
-	"github.com/merenguessss/Dracarys-go/codec"
-	"github.com/merenguessss/Dracarys-go/codec/protocol"
+	"github.com/merenguessss/dracarys-go/codec"
+	"github.com/merenguessss/dracarys-go/codec/protocol"
 )
 
 type dispatcher struct {

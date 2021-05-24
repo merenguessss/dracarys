@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"github.com/merenguessss/Dracarys-go/pool/conn_pool"
+	"github.com/merenguessss/dracarys-go/pool/conn_pool"
 )
 
 type ClientOptions struct {
