@@ -15,6 +15,7 @@ type Service interface {
 	Register(methodName, method FilterFunc)
 	Serve() error
 	Close()
+	handle(codec.Msg, []byte) ([]byte, error)
 }
 
 type ServiceDesc struct {
@@ -54,7 +55,7 @@ func (s *service) Serve(o *Options) error {
 		transport.WithAddress(s.opt.address),
 		transport.WithNetwork(s.opt.network),
 		transport.WithKeepAlivePeriod(s.opt.keepAlivePeriod),
-		transport.WithHandler(s),
+		transport.WithHandler(DefaultDispatcher),
 	}
 	st := transport.DefaultServerTransport
 
