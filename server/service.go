@@ -2,14 +2,19 @@ package server
 
 import (
 	"context"
+	"errors"
 
+	"github.com/merenguessss/Dracarys-go/codec"
+	"github.com/merenguessss/Dracarys-go/codec/protocol"
 	"github.com/merenguessss/Dracarys-go/interceptor"
+	"github.com/merenguessss/Dracarys-go/serialization"
+	"github.com/merenguessss/Dracarys-go/transport"
 )
 
 type Service interface {
 	Register(methodName, method FilterFunc)
 	Serve() error
-	Close() error
+	Close()
 }
 
 type ServiceDesc struct {
@@ -24,12 +29,15 @@ type Method struct {
 	Func FilterFunc
 }
 
-type FilterFunc func(svr interface{}, ctx context.Context, parse func(interface{}) error, handlers []interceptor.ServerHandler) (rep interface{}, err error)
+type FilterFunc func(svr interface{}, ctx context.Context, parse func(interface{}) error,
+	handlers []interceptor.ServerHandler) (rep interface{}, err error)
 
 type service struct {
 	ctx         context.Context
+	cancel      context.CancelFunc
 	serviceName string
 	handles     map[string]FilterFunc
+	opt         *Options
 }
 
 func (s *service) Register(methodName string, method FilterFunc) {
@@ -39,11 +47,58 @@ func (s *service) Register(methodName string, method FilterFunc) {
 	s.handles[methodName] = method
 }
 
-func (s *service) Serve() error {
+func (s *service) Serve(o *Options) error {
+	s.opt = o
 
+	tsOpt := []transport.ServerOption{
+		transport.WithAddress(s.opt.address),
+		transport.WithNetwork(s.opt.network),
+		transport.WithKeepAlivePeriod(s.opt.keepAlivePeriod),
+		transport.WithHandler(s),
+	}
+	st := transport.DefaultServerTransport
+
+	s.ctx, s.cancel = context.WithCancel(context.Background())
+	if err := st.ListenAndServe(s.ctx, tsOpt...); err != nil {
+		return errors.New(s.serviceName + " service transport error " + err.Error())
+	}
+
+	<-s.ctx.Done()
 	return nil
 }
 
-func (s *service) Close() error {
-	return nil
+func (s *service) Close() {
+	if s.cancel != nil {
+		s.cancel()
+	}
+}
+
+func (s *service) handle(ctx context.Context, b []byte) ([]byte, error) {
+	msg := codec.MsgBuilder.Default()
+	coder := codec.DefaultCodec
+
+	reqBody, err := coder.Decode(msg, b)
+	if err != nil {
+		return nil, err
+	}
+
+	serializer := serialization.Get(msg.SerializerType())
+	protocolCoder := protocol.GetServerCodec(msg.PackageType())
+
+	reqBuf, err := protocolCoder.Decode(msg, reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	parse := func(req interface{}) error {
+		if err = serializer.Unmarshal(reqBuf, req); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// todo 哪一个service???? 完善
+	handle := s.handles[msg.RPCMethodName()]
+
+	return nil, nil
 }

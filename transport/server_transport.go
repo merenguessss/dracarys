@@ -145,7 +145,7 @@ func (st *defaultServerTransport) handleConn(ctx context.Context, conn net.Conn)
 		}
 
 		// 执行函数
-		rep, err = st.serverOptions.handler.handle(ctx, req)
+		rep, err = st.serverOptions.handler.Handle(ctx, req)
 		if err != nil {
 			return errors.New("handle req error " + err.Error())
 		}

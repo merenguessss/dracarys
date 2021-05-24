@@ -15,7 +15,7 @@ type ServerOptions struct {
 type ServerOption func(*ServerOptions)
 
 type Handler interface {
-	handle(context.Context, []byte) ([]byte, error)
+	Handle(context.Context, []byte) ([]byte, error)
 }
 
 func WithNetwork(network string) ServerOption {
