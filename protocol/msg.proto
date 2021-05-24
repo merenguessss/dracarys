@@ -1,6 +1,6 @@
 syntax = "proto3";
 package protocol;
-option go_package="github.com/merenguessss/Dracarys-go/protocol";
+option go_package="github.com/merenguessss/dracarys-go/protocol";
 
 message Request{
   uint32 request_id = 1; // 一次请求的唯一ID
