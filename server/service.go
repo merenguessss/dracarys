@@ -5,15 +5,14 @@ import (
 	"errors"
 
 	"github.com/merenguessss/dracarys-go/codec"
-	"github.com/merenguessss/dracarys-go/codec/protocol"
 	"github.com/merenguessss/dracarys-go/interceptor"
 	"github.com/merenguessss/dracarys-go/serialization"
 	"github.com/merenguessss/dracarys-go/transport"
 )
 
 type Service interface {
-	Register(methodName, method FilterFunc)
-	Serve() error
+	Register(string, FilterFunc)
+	Serve(o *Options) error
 	Close()
 	handle(codec.Msg, []byte) ([]byte, error)
 }
@@ -30,8 +29,8 @@ type Method struct {
 	Func FilterFunc
 }
 
-type FilterFunc func(svr interface{}, ctx context.Context, parse func(interface{}) error,
-	handlers []interceptor.ServerHandler) (rep interface{}, err error)
+type FilterFunc func(ctx context.Context, parse func(interface{}) error,
+	handlers []interceptor.Interceptor) (rep interface{}, err error)
 
 type service struct {
 	ctx         context.Context
@@ -74,32 +73,33 @@ func (s *service) Close() {
 	}
 }
 
-func (s *service) handle(ctx context.Context, b []byte) ([]byte, error) {
-	msg := codec.MsgBuilder.Default()
-	coder := codec.DefaultCodec
-
-	reqBody, err := coder.Decode(msg, b)
-	if err != nil {
-		return nil, err
-	}
-
+func (s *service) handle(msg codec.Msg, reqBuf []byte) ([]byte, error) {
 	serializer := serialization.Get(msg.SerializerType())
-	protocolCoder := protocol.GetServerCodec(msg.PackageType())
 
-	reqBuf, err := protocolCoder.Decode(msg, reqBody)
-	if err != nil {
-		return nil, err
-	}
-
-	parse := func(req interface{}) error {
-		if err = serializer.Unmarshal(reqBuf, req); err != nil {
+	parser := func(req interface{}) error {
+		if err := serializer.Unmarshal(reqBuf, req); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	// todo 哪一个service???? 完善
 	handle := s.handles[msg.RPCMethodName()]
+	rep, err := handle(s.ctx, parser, s.opt.beforeHandle)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	// 刷新msg的内容
+	s.updateMsg(msg)
+	serializer = serialization.Get(msg.SerializerType())
+	repBuf, err := serializer.Marshal(rep)
+	if err != nil {
+		return nil, err
+	}
+	return repBuf, nil
+}
+
+func (s *service) updateMsg(msg codec.Msg) {
+	// todo msg.WithCompressType()
+	msg.WithSerializerType(s.opt.serializerType)
 }

@@ -23,19 +23,19 @@ type defaultClient struct {
 	option *Options
 }
 
-func (c *defaultClient) Invoke(ctx context.Context, req, rep interface{}, path string,
-	option ...Option) error {
+func (c *defaultClient) Invoke(ctx context.Context, req interface{}, path string,
+	option ...Option) (interface{}, error) {
 	for _, op := range option {
 		op(c.option)
 	}
-	return interceptor.Invoke(ctx, req, rep, c.invoke, c.option.beforeHandle)
+	return interceptor.Invoke(ctx, req, c.invoke, c.option.beforeHandle)
 }
 
-func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error {
+func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{}, error) {
 	serializer := serialization.Get(c.option.serializerType)
 	reqBuf, err := serializer.Marshal(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	msg := codec.MsgBuilder.Default()
@@ -43,7 +43,7 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 	reqBody, err := coder.Decode(msg, reqBuf)
 	_, err = coder.Decode(msg, reqBuf)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	addr := c.findAddress()
@@ -58,7 +58,7 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 
 	_, err = clientTransport.Send(ctx, reqBody, transportOption...)
 
-	return nil
+	return nil, nil
 }
 
 func (c *defaultClient) NewClientTransport() transport.ClientTransport {
