@@ -73,6 +73,7 @@ func (s *service) Close() {
 	}
 }
 
+// handle 调用具体RPC函数.
 func (s *service) handle(msg codec.Msg, reqBuf []byte) ([]byte, error) {
 	serializer := serialization.Get(msg.SerializerType())
 
@@ -99,7 +100,10 @@ func (s *service) handle(msg codec.Msg, reqBuf []byte) ([]byte, error) {
 	return repBuf, nil
 }
 
+// updateMsg 刷新msg中的内容.
 func (s *service) updateMsg(msg codec.Msg) {
 	// todo msg.WithCompressType()
 	msg.WithSerializerType(s.opt.serializerType)
+	msg.WithPackageType(codec.StrToPackageType(s.opt.codecType))
+	msg.WithReqType(codec.SendOnly)
 }
