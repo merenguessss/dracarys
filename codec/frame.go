@@ -92,7 +92,7 @@ const FrameHeaderLen = 15
 const (
 	Proto = iota
 	Thrift
-	arvo
+	Arvo
 )
 
 const (
@@ -110,3 +110,27 @@ const (
 	LongConn
 	StreamTrans
 )
+
+func PackageTypeToString(t uint8) string {
+	switch t {
+	case 0:
+		return "proto"
+	case 1:
+		return "thrift"
+	default:
+		return "arvo"
+	}
+}
+
+func StrToPackageType(t string) uint8 {
+	switch t {
+	case "proto", "Proto":
+		return 0
+	case "thrift", "Thrift":
+		return 1
+	case "Arvo", "arvo":
+		return 2
+	default:
+		return 3
+	}
+}
