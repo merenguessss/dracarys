@@ -8,8 +8,8 @@ import (
 )
 
 type Server struct {
-	options    Options
-	serviceMap map[string]Service
+	Options    *Options
+	ServiceMap map[string]Service
 }
 
 type emptyHandlerType interface{}
@@ -33,7 +33,6 @@ func (s *Server) RegisterService(serviceName string, service interface{}, option
 
 func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 	srvType := reflect.TypeOf(service)
-	//srvValue := reflect.ValueOf(service)
 	n := srvType.NumMethod()
 	methods := make([]*Method, n)
 
@@ -42,10 +41,10 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 
 		methodFilter := func(ctx context.Context, parse func(interface{}) error,
 			beforeHandle []interceptor.Interceptor) (interface{}, error) {
-			var in []interface{}
+			in := make([]interface{}, 0)
 			var params []reflect.Value
 
-			if err := parse(in); err != nil {
+			if err := parse(&in); err != nil {
 				return nil, err
 			}
 
@@ -63,10 +62,10 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 			return interceptor.Invoke(ctx, in, handler, beforeHandle)
 		}
 
-		methods = append(methods, &Method{
+		methods[i] = &Method{
 			Name: method.Name,
 			Func: methodFilter,
-		})
+		}
 	}
 	return methods, nil
 }
@@ -93,9 +92,19 @@ func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option)
 		o(ser.opt)
 	}
 
-	if _, ok := s.serviceMap[ser.serviceName]; ok {
+	if _, ok := s.ServiceMap[ser.serviceName]; ok {
 		// log has same service
 	}
 
-	s.serviceMap[ser.serviceName] = ser
+	s.ServiceMap[ser.serviceName] = ser
+	DefaultDispatcher.serviceMap[ser.serviceName] = ser
+}
+
+func (s *Server) Serve() error {
+	for _, v := range s.ServiceMap {
+		if err := v.Serve(s.Options); err != nil {
+			return err
+		}
+	}
+	return nil
 }
