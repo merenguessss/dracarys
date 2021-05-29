@@ -38,3 +38,9 @@ func WithMethod(methodName string) Option {
 		options.MethodName = methodName
 	}
 }
+
+func WithNetWork(network string) Option {
+	return func(options *Options) {
+		options.NetWork = network
+	}
+}
