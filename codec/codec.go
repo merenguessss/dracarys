@@ -47,7 +47,7 @@ func (cc *codec) Encode(msg Msg, b []byte) ([]byte, error) {
 	}
 
 	length := FrameHeaderLen + len(b)
-	buffer := bytes.NewBuffer(make([]byte, length))
+	buffer := bytes.NewBuffer(make([]byte, 0, length))
 
 	frameHeader := &FrameHeader{
 		Magic:        Magic,
@@ -88,7 +88,6 @@ func (cc *codec) Encode(msg Msg, b []byte) ([]byte, error) {
 	if err := binary.Write(buffer, binary.BigEndian, b); err != nil {
 		return nil, err
 	}
-
 	return buffer.Bytes(), nil
 }
 
