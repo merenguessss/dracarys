@@ -31,6 +31,7 @@ func (fb *defaultFramerBuilder) New(conn net.Conn) Framer {
 }
 
 type framer struct {
+	counter    int
 	conn       net.Conn
 	readBuffer []byte
 }
@@ -47,17 +48,18 @@ func (f *framer) ReadFrame() ([]byte, error) {
 		return nil, errors.New("version error")
 	}
 
-	length := binary.BigEndian.Uint32(frameHeader)
+	length := binary.BigEndian.Uint32(frameHeader[7:11])
 	if length > MaxPayloadLength {
 		return nil, errors.New("payload beyond max length")
 	}
-	if length > DefaultBufferLength {
-		f.readBuffer = make([]byte, length)
+	if length > uint32(len(f.readBuffer)) && f.counter < 12 {
+		f.readBuffer = make([]byte, len(f.readBuffer)*2)
+		f.counter++
 	}
-	if n, err := io.ReadFull(f.conn, f.readBuffer); n != int(length) || err == io.EOF {
+	if n, err := io.ReadFull(f.conn, f.readBuffer[:length]); n != int(length-FrameHeaderLen) || err == io.EOF {
 		return nil, errors.New("read payload error")
 	}
-	return f.readBuffer[:length], nil
+	return append(frameHeader, f.readBuffer[:length-FrameHeaderLen]...), nil
 }
 
 const DefaultBufferLength = 1024
