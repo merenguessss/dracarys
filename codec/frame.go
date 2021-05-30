@@ -36,6 +36,7 @@ type framer struct {
 	readBuffer []byte
 }
 
+// ReadFrame 读取帧信息，先判断帧头信息，再对
 func (f *framer) ReadFrame() ([]byte, error) {
 	frameHeader := make([]byte, FrameHeaderLen)
 	if n, err := io.ReadFull(f.conn, frameHeader); n != FrameHeaderLen || err == io.EOF {
@@ -113,6 +114,7 @@ const (
 	StreamTrans
 )
 
+// PackageTypeToString 解析uint8类型的packageType帧头
 func PackageTypeToString(t uint8) string {
 	switch t {
 	case 0:
@@ -124,6 +126,7 @@ func PackageTypeToString(t uint8) string {
 	}
 }
 
+// StrToPackageType string类型转到uint8放到帧头压缩.
 func StrToPackageType(t string) uint8 {
 	switch t {
 	case "proto", "Proto":
