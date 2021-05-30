@@ -48,7 +48,7 @@ func (f *framer) ReadFrame() ([]byte, error) {
 		return nil, errors.New("version error")
 	}
 
-	length := binary.BigEndian.Uint32(frameHeader[7:11])
+	length := binary.BigEndian.Uint32(frameHeader[7:11]) - FrameHeaderLen
 	if length > MaxPayloadLength {
 		return nil, errors.New("payload beyond max length")
 	}
@@ -56,10 +56,10 @@ func (f *framer) ReadFrame() ([]byte, error) {
 		f.readBuffer = make([]byte, len(f.readBuffer)*2)
 		f.counter++
 	}
-	if n, err := io.ReadFull(f.conn, f.readBuffer[:length]); n != int(length-FrameHeaderLen) || err == io.EOF {
+	if n, err := io.ReadFull(f.conn, f.readBuffer[:length]); n != int(length) || err == io.EOF {
 		return nil, errors.New("read payload error")
 	}
-	return append(frameHeader, f.readBuffer[:length-FrameHeaderLen]...), nil
+	return append(frameHeader, f.readBuffer[:length]...), nil
 }
 
 const DefaultBufferLength = 1024
