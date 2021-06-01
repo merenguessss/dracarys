@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+
 	"github.com/merenguessss/dracarys-go/codec"
 	"github.com/merenguessss/dracarys-go/codec/protocol"
 	"github.com/merenguessss/dracarys-go/interceptor"
@@ -63,7 +64,29 @@ func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{
 		transport.WithNetWork(transport.Network(c.option.NetWork)),
 	}
 	clientTransport := c.NewClientTransport()
-	return clientTransport.Send(ctx, reqBody, transportOption...)
+	repBody, err := clientTransport.Send(ctx, reqBody, transportOption...)
+	if err != nil {
+		return nil, err
+	}
+
+	repBuf, err := coder.Decode(msg, repBody)
+	if err != nil {
+		return nil, err
+	}
+
+	protocolCoder = protocol.GetClientCodec(msg.PackageType())
+	repBuf, err = protocolCoder.Decode(msg, repBuf)
+	if err != nil {
+		return nil, err
+	}
+
+	var rep interface{}
+	serializer = serialization.Get(msg.SerializerType())
+	err = serializer.Unmarshal(repBuf, &rep)
+	if err != nil {
+		return nil, err
+	}
+	return rep, nil
 }
 
 func (c *defaultClient) NewClientTransport() transport.ClientTransport {
