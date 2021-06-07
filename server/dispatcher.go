@@ -29,6 +29,12 @@ func (d *dispatcher) RegisterService(name string, s Service) {
 
 // Handle 收到请求之后定位到具体的service进行调用.
 func (d *dispatcher) Handle(ctx context.Context, b []byte) ([]byte, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	msg := codec.MsgBuilder.Default()
 	var rep []byte
 
