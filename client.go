@@ -2,7 +2,6 @@ package dracarys
 
 import (
 	"context"
-	"time"
 
 	"github.com/merenguessss/dracarys-go/client"
 )
@@ -25,6 +24,5 @@ func (c *Client) Service(name string) {
 
 func (c *Client) Call(methodName string, req interface{}) (interface{}, error) {
 	c.opts = append(c.opts, client.WithMethod(methodName))
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	return c.c.Invoke(ctx, req, "", c.opts...)
+	return c.c.Invoke(context.Background(), req, "", c.opts...)
 }
