@@ -7,6 +7,14 @@ import (
 	"net"
 )
 
+var (
+	FrameHeaderReadError  = errors.New("frame header read error")
+	MagicNumberError      = errors.New("magic number error ")
+	RPCVersionError       = errors.New("version error")
+	PayloadOutLengthError = errors.New("payload beyond max length")
+	PayloadReadError      = errors.New("read payload error")
+)
+
 func init() {
 	DefaultFramerBuilder = &defaultFramerBuilder{}
 }
@@ -36,29 +44,37 @@ type framer struct {
 	readBuffer []byte
 }
 
-// ReadFrame 读取帧信息，先判断帧头信息，再对
+// ReadFrame 读取帧信息，先判断帧头信息，再对魔数、版本号进行判断，最后读取完整payload.
 func (f *framer) ReadFrame() ([]byte, error) {
+	var n int
+	var err error
 	frameHeader := make([]byte, FrameHeaderLen)
-	if n, err := io.ReadFull(f.conn, frameHeader); n != FrameHeaderLen || err == io.EOF {
-		return nil, errors.New("frame header error")
+	n, err = io.ReadFull(f.conn, frameHeader)
+	if n != FrameHeaderLen || err != nil {
+		if n == 0 {
+			return nil, io.EOF
+		}
+		return nil, FrameHeaderReadError
 	}
+
 	if magic := frameHeader[0]; magic != Magic {
-		return nil, errors.New("magic number error ")
+		return nil, MagicNumberError
 	}
 	if version := frameHeader[1]; Version != version {
-		return nil, errors.New("version error")
+		return nil, RPCVersionError
 	}
 
 	length := binary.BigEndian.Uint32(frameHeader[7:11]) - FrameHeaderLen
 	if length > MaxPayloadLength {
-		return nil, errors.New("payload beyond max length")
+		return nil, PayloadOutLengthError
 	}
 	if length > uint32(len(f.readBuffer)) && f.counter < 12 {
 		f.readBuffer = make([]byte, len(f.readBuffer)*2)
 		f.counter++
 	}
-	if n, err := io.ReadFull(f.conn, f.readBuffer[:length]); n != int(length) || err == io.EOF {
-		return nil, errors.New("read payload error")
+
+	if n, err = io.ReadFull(f.conn, f.readBuffer[:length]); uint32(n) != length || err == io.EOF {
+		return nil, PayloadReadError
 	}
 	return append(frameHeader, f.readBuffer[:length]...), nil
 }
@@ -92,21 +108,25 @@ const Magic = 0x12
 const Version = 0
 const FrameHeaderLen = 15
 
+// 协议protocol打包类型.
 const (
 	Proto = iota
 	Thrift
 	Arvo
 )
 
+// 压缩类型.
 const (
 	NoneCompress = iota
 )
 
+// 消息类型.
 const (
 	GeneralMsg = 0x0
 	HeartMsg   = 0x1
 )
 
+// 请求类型.
 const (
 	SendAndRecv = iota
 	SendOnly
