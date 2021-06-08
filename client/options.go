@@ -6,6 +6,7 @@ import (
 )
 
 type Options struct {
+	ClientName        string
 	ServiceName       string
 	MethodName        string
 	Addr              string
@@ -17,6 +18,7 @@ type Options struct {
 	EnableMultiplexed bool
 	DisableConnPool   bool
 	NetWork           string
+	CompressType      string
 }
 
 type Option func(*Options)
@@ -24,6 +26,12 @@ type Option func(*Options)
 func WithAddr(addr string) Option {
 	return func(options *Options) {
 		options.Addr = addr
+	}
+}
+
+func WithClientName(clientName string) Option {
+	return func(options *Options) {
+		options.ClientName = clientName
 	}
 }
 
@@ -42,5 +50,53 @@ func WithMethod(methodName string) Option {
 func WithNetWork(network string) Option {
 	return func(options *Options) {
 		options.NetWork = network
+	}
+}
+
+func WithDisableConnPool(b bool) Option {
+	return func(options *Options) {
+		options.DisableConnPool = b
+	}
+}
+
+func WithEnableMultiplexed(b bool) Option {
+	return func(options *Options) {
+		options.EnableMultiplexed = b
+	}
+}
+
+func WithCodecType(codecType string) Option {
+	return func(options *Options) {
+		options.codecType = codecType
+	}
+}
+
+func WithSerializerType(serializerType string) Option {
+	return func(options *Options) {
+		options.serializerType = serializerType
+	}
+}
+
+func WithBeforeHandle(h []interceptor.Interceptor) Option {
+	return func(options *Options) {
+		options.beforeHandle = h
+	}
+}
+
+func WithAfterHandle(h []interceptor.Interceptor) Option {
+	return func(options *Options) {
+		options.afterHandle = h
+	}
+}
+
+func WithPluginFactory(p plugin.Factory) Option {
+	return func(options *Options) {
+		options.PluginFactory = p
+	}
+}
+
+func WithCompressType(compressType string) Option {
+	return func(options *Options) {
+		options.CompressType = compressType
 	}
 }
