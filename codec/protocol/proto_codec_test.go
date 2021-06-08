@@ -9,7 +9,7 @@ import (
 func TestClientEncode(t *testing.T) {
 	pbCCodec := GetClientCodec(codec.Proto)
 	pbSCodec := GetServerCodec(codec.Proto)
-	msg := codec.MsgBuilder.WithServerServiceName("server service").
+	msg := codec.NewMsgBuilder().WithServerServiceName("server service").
 		WithRequestID(uint8(123)).WithRPCMethodName("method").Build()
 
 	testStr := []string{
