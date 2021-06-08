@@ -8,11 +8,11 @@ import (
 )
 
 var (
-	FrameHeaderReadError  = errors.New("frame header read error")
-	MagicNumberError      = errors.New("magic number error ")
-	RPCVersionError       = errors.New("version error")
-	PayloadOutLengthError = errors.New("payload beyond max length")
-	PayloadReadError      = errors.New("read payload error")
+	ErrorFrameHeaderRead  = errors.New("frame header read error")
+	ErrorMagicNumber      = errors.New("magic number error ")
+	ErrorRPCVersion       = errors.New("version error")
+	ErrorPayloadOutLength = errors.New("payload beyond max length")
+	ErrorPayloadRead      = errors.New("read payload error")
 )
 
 func init() {
@@ -54,19 +54,19 @@ func (f *framer) ReadFrame() ([]byte, error) {
 		if n == 0 {
 			return nil, io.EOF
 		}
-		return nil, FrameHeaderReadError
+		return nil, ErrorFrameHeaderRead
 	}
 
 	if magic := frameHeader[0]; magic != Magic {
-		return nil, MagicNumberError
+		return nil, ErrorMagicNumber
 	}
 	if version := frameHeader[1]; Version != version {
-		return nil, RPCVersionError
+		return nil, ErrorRPCVersion
 	}
 
 	length := binary.BigEndian.Uint32(frameHeader[7:11]) - FrameHeaderLen
 	if length > MaxPayloadLength {
-		return nil, PayloadOutLengthError
+		return nil, ErrorPayloadOutLength
 	}
 	if length > uint32(len(f.readBuffer)) && f.counter < 12 {
 		f.readBuffer = make([]byte, len(f.readBuffer)*2)
@@ -74,7 +74,7 @@ func (f *framer) ReadFrame() ([]byte, error) {
 	}
 
 	if n, err = io.ReadFull(f.conn, f.readBuffer[:length]); uint32(n) != length || err == io.EOF {
-		return nil, PayloadReadError
+		return nil, ErrorPayloadRead
 	}
 	return append(frameHeader, f.readBuffer[:length]...), nil
 }
