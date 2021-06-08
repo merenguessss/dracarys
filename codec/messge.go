@@ -1,18 +1,32 @@
 package codec
 
 type MessageBuilder interface {
-	Default() Msg
+	//Default() Msg
 	WithSerializerType(string) MessageBuilder
-	WithCompressType(uint8) MessageBuilder
-	WithPackageType(uint8) MessageBuilder
+	WithCompressType(string) MessageBuilder
+	WithPackageType(string) MessageBuilder
 	WithMsgType(uint8) MessageBuilder
 	WithReqType(uint8) MessageBuilder
 	WithClientServiceName(string) MessageBuilder
 	WithServerServiceName(string) MessageBuilder
 	WithRPCMethodName(string) MessageBuilder
+	WithRequestID(id uint8) MessageBuilder
 	WithRetCode(uint32) MessageBuilder
 	WithRetMsg(string) MessageBuilder
 	Build() Msg
+}
+
+func NewMsgBuilder() MessageBuilder {
+	mb := &messageBuilder{
+		msg: &msg{
+			serializerType: "json",
+			compressType:   NoneCompress,
+			packageType:    Proto,
+			msgType:        GeneralMsg,
+			reqType:        SendAndRecv,
+		},
+	}
+	return mb
 }
 
 var MsgBuilder = &messageBuilder{
@@ -23,61 +37,50 @@ type messageBuilder struct {
 	msg Msg
 }
 
-func (mb *messageBuilder) Default() Msg {
-	mb.msg = &msg{
-		serializerType: "json",
-		compressType:   NoneCompress,
-		packageType:    Proto,
-		msgType:        GeneralMsg,
-		reqType:        SendAndRecv,
-	}
-	return mb.msg
-}
-
-func (mb *messageBuilder) WithSerializerType(st string) *messageBuilder {
+func (mb *messageBuilder) WithSerializerType(st string) MessageBuilder {
 	mb.msg.WithSerializerType(st)
 	return mb
 }
-func (mb *messageBuilder) WithCompressType(ct uint8) *messageBuilder {
-	mb.msg.WithCompressType(ct)
+func (mb *messageBuilder) WithCompressType(ct string) MessageBuilder {
+	mb.msg.WithCompressType(strToCompressType(ct))
 	return mb
 }
-func (mb *messageBuilder) WithPackageType(ft uint8) *messageBuilder {
-	mb.msg.WithPackageType(ft)
+func (mb *messageBuilder) WithPackageType(ft string) MessageBuilder {
+	mb.msg.WithPackageType(strToPackageType(ft))
 	return mb
 }
-func (mb *messageBuilder) WithMsgType(mt uint8) *messageBuilder {
+func (mb *messageBuilder) WithMsgType(mt uint8) MessageBuilder {
 	mb.msg.WithMsgType(mt)
 	return mb
 }
-func (mb *messageBuilder) WithReqType(rt uint8) *messageBuilder {
+func (mb *messageBuilder) WithReqType(rt uint8) MessageBuilder {
 	mb.msg.WithReqType(rt)
 	return mb
 }
-func (mb *messageBuilder) WithClientServiceName(csn string) *messageBuilder {
+func (mb *messageBuilder) WithClientServiceName(csn string) MessageBuilder {
 	mb.msg.WithClientServiceName(csn)
 	return mb
 }
-func (mb *messageBuilder) WithServerServiceName(ssn string) *messageBuilder {
+func (mb *messageBuilder) WithServerServiceName(ssn string) MessageBuilder {
 	mb.msg.WithServerServiceName(ssn)
 	return mb
 }
-func (mb *messageBuilder) WithRPCMethodName(mn string) *messageBuilder {
+func (mb *messageBuilder) WithRPCMethodName(mn string) MessageBuilder {
 	mb.msg.WithRPCMethodName(mn)
 	return mb
 }
 
-func (mb *messageBuilder) WithRequestID(id uint8) *messageBuilder {
+func (mb *messageBuilder) WithRequestID(id uint8) MessageBuilder {
 	mb.msg.WithRequestID(id)
 	return mb
 }
 
-func (mb *messageBuilder) WithRetCode(code uint32) *messageBuilder {
+func (mb *messageBuilder) WithRetCode(code uint32) MessageBuilder {
 	mb.msg.WithRetCode(code)
 	return mb
 }
 
-func (mb *messageBuilder) WithRetMsg(msg string) *messageBuilder {
+func (mb *messageBuilder) WithRetMsg(msg string) MessageBuilder {
 	mb.msg.WithRetMsg(msg)
 	return mb
 }
