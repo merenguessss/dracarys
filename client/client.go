@@ -29,20 +29,18 @@ func (c *defaultClient) Invoke(ctx context.Context, req interface{}, path string
 	for _, op := range option {
 		op(c.option)
 	}
-	r := []interface{}{req}
-	return interceptor.Invoke(ctx, r, c.invoke, c.option.beforeHandle)
+	return interceptor.Invoke(ctx, req, c.invoke, c.option.beforeHandle)
 }
 
 func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{}, error) {
-	msg := codec.MsgBuilder.Default()
+	msg := c.getMsg()
+
 	serializer := serialization.Get(msg.SerializerType())
 	reqBuf, err := serializer.Marshal(req)
 	if err != nil {
 		return nil, err
 	}
 
-	msg.WithServerServiceName(c.option.ServiceName)
-	msg.WithRPCMethodName(c.option.MethodName)
 	protocolCoder := protocol.GetClientCodec(msg.PackageType())
 	reqBuf, err = protocolCoder.Encode(msg, reqBuf)
 	if err != nil {
@@ -95,4 +93,13 @@ func (c *defaultClient) NewClientTransport() transport.ClientTransport {
 
 func (c *defaultClient) findAddress() string {
 	return c.option.Addr
+}
+
+func (c *defaultClient) getMsg() codec.Msg {
+	mb := codec.NewMsgBuilder()
+	return mb.WithCompressType(c.option.CompressType).
+		WithSerializerType(c.option.serializerType).
+		WithPackageType(c.option.CompressType).
+		WithServerServiceName(c.option.ServiceName).
+		WithRPCMethodName(c.option.MethodName).Build()
 }
