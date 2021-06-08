@@ -1,7 +1,6 @@
 package codec
 
 type MessageBuilder interface {
-	//Default() Msg
 	WithSerializerType(string) MessageBuilder
 	WithCompressType(string) MessageBuilder
 	WithPackageType(string) MessageBuilder
@@ -42,11 +41,11 @@ func (mb *messageBuilder) WithSerializerType(st string) MessageBuilder {
 	return mb
 }
 func (mb *messageBuilder) WithCompressType(ct string) MessageBuilder {
-	mb.msg.WithCompressType(strToCompressType(ct))
+	mb.msg.WithCompressType(StrToCompressType(ct))
 	return mb
 }
 func (mb *messageBuilder) WithPackageType(ft string) MessageBuilder {
-	mb.msg.WithPackageType(strToPackageType(ft))
+	mb.msg.WithPackageType(StrToPackageType(ft))
 	return mb
 }
 func (mb *messageBuilder) WithMsgType(mt uint8) MessageBuilder {

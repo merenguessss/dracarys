@@ -140,7 +140,7 @@ func compressTypeToStr(t uint8) string {
 }
 
 // strToCompressType 解析string类型为uint8类型的compressType帧头.
-func strToCompressType(t string) uint8 {
+func StrToCompressType(t string) uint8 {
 	return NoneCompress
 }
 
@@ -157,7 +157,7 @@ func packageTypeToStr(t uint8) string {
 }
 
 // StrToPackageType string类型转到uint8放到帧头压缩.
-func strToPackageType(t string) uint8 {
+func StrToPackageType(t string) uint8 {
 	switch t {
 	case "proto", "Proto":
 		return 0
