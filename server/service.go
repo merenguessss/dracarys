@@ -51,9 +51,9 @@ func (s *service) Serve(o *Options) error {
 	s.opt = o
 
 	tsOpt := []transport.ServerOption{
-		transport.WithAddress(s.opt.address),
-		transport.WithNetwork(s.opt.network),
-		transport.WithKeepAlivePeriod(s.opt.keepAlivePeriod),
+		transport.WithAddress(s.opt.Address),
+		transport.WithNetwork(s.opt.Network),
+		transport.WithKeepAlivePeriod(s.opt.KeepAlivePeriod),
 		transport.WithHandler(DefaultDispatcher),
 	}
 	st := transport.DefaultServerTransport
@@ -103,7 +103,7 @@ func (s *service) handle(msg codec.Msg, reqBuf []byte) ([]byte, error) {
 // updateMsg 刷新msg中的内容.
 func (s *service) updateMsg(msg codec.Msg) {
 	// todo msg.WithCompressType()
-	msg.WithSerializerType(s.opt.serializerType)
-	msg.WithPackageType(codec.StrToPackageType(s.opt.codecType))
+	msg.WithSerializerType(s.opt.SerializerType)
+	msg.WithPackageType(codec.StrToPackageType(s.opt.CodecType))
 	msg.WithReqType(codec.SendOnly)
 }
