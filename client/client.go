@@ -14,9 +14,9 @@ type Client interface {
 	Invoke(ctx context.Context, req interface{}, option ...Option) (interface{}, error)
 }
 
-func New() *defaultClient {
+func New(o *Options) *defaultClient {
 	return &defaultClient{
-		option: &Options{},
+		option: o,
 	}
 }
 

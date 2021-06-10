@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/merenguessss/dracarys-go/client"
+	"github.com/merenguessss/dracarys-go/config"
 )
 
 type Client struct {
@@ -16,8 +17,13 @@ type Client struct {
 type Method func(...interface{}) (interface{}, error)
 
 func NewClient(opts ...client.Option) *Client {
+	o, err := config.GetClient()
+	if err != nil {
+		// todo log err
+		o = &client.Options{}
+	}
 	return &Client{
-		c:    client.New(),
+		c:    client.New(o),
 		opts: opts,
 	}
 }
