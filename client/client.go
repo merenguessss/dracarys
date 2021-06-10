@@ -11,7 +11,7 @@ import (
 )
 
 type Client interface {
-	Invoke(ctx context.Context, req interface{}, path string, option ...Option) (interface{}, error)
+	Invoke(ctx context.Context, req interface{}, option ...Option) (interface{}, error)
 }
 
 func New() *defaultClient {
@@ -24,7 +24,7 @@ type defaultClient struct {
 	option *Options
 }
 
-func (c *defaultClient) Invoke(ctx context.Context, req interface{}, path string,
+func (c *defaultClient) Invoke(ctx context.Context, req interface{},
 	option ...Option) (interface{}, error) {
 	for _, op := range option {
 		op(c.option)
@@ -47,7 +47,7 @@ func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{
 		return nil, err
 	}
 
-	coder := codec.Get(c.option.codecType)
+	coder := codec.Get(c.option.CodecType)
 	reqBody, err := coder.Encode(msg, reqBuf)
 	if err != nil {
 		return nil, err
@@ -98,8 +98,8 @@ func (c *defaultClient) findAddress() string {
 func (c *defaultClient) getMsg() codec.Msg {
 	mb := codec.NewMsgBuilder()
 	return mb.WithCompressType(c.option.CompressType).
-		WithSerializerType(c.option.serializerType).
+		WithSerializerType(c.option.SerializerType).
 		WithPackageType(c.option.CompressType).
-		WithServerServiceName(c.option.ServiceName).
-		WithRPCMethodName(c.option.MethodName).Build()
+		WithServerServiceName(c.option.serviceName).
+		WithRPCMethodName(c.option.methodName).Build()
 }

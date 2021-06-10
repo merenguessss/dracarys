@@ -6,19 +6,19 @@ import (
 )
 
 type Options struct {
-	ClientName        string
-	ServiceName       string
-	MethodName        string
-	Addr              string
+	ClientName        string `yaml:"name"`
+	Addr              string `yaml:"address"`
+	SerializerType    string `yaml:"serializer"`
+	CodecType         string `yaml:"codec"`
+	EnableMultiplexed bool   `yaml:"enable_multiplexed"`
+	DisableConnPool   bool   `yaml:"disable_connection_pool"`
+	NetWork           string `yaml:"network"`
+	CompressType      string `yaml:"compress"`
+	serviceName       string
+	methodName        string
 	PluginFactory     plugin.Factory
 	beforeHandle      []interceptor.Interceptor
 	afterHandle       []interceptor.Interceptor
-	serializerType    string
-	codecType         string
-	EnableMultiplexed bool
-	DisableConnPool   bool
-	NetWork           string
-	CompressType      string
 }
 
 type Option func(*Options)
@@ -37,13 +37,13 @@ func WithClientName(clientName string) Option {
 
 func WithService(serviceName string) Option {
 	return func(options *Options) {
-		options.ServiceName = serviceName
+		options.serviceName = serviceName
 	}
 }
 
 func WithMethod(methodName string) Option {
 	return func(options *Options) {
-		options.MethodName = methodName
+		options.methodName = methodName
 	}
 }
 
@@ -67,13 +67,13 @@ func WithEnableMultiplexed(b bool) Option {
 
 func WithCodecType(codecType string) Option {
 	return func(options *Options) {
-		options.codecType = codecType
+		options.CodecType = codecType
 	}
 }
 
 func WithSerializerType(serializerType string) Option {
 	return func(options *Options) {
-		options.serializerType = serializerType
+		options.SerializerType = serializerType
 	}
 }
 
