@@ -3,6 +3,7 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"sync/atomic"
 	"time"
 
 	"github.com/merenguessss/dracarys-go/client"
@@ -11,9 +12,7 @@ import (
 )
 
 var configStream []byte
-
 var path string
-
 var config = newDefault()
 
 // Setting 整体设置结构体.
@@ -22,6 +21,7 @@ var config = newDefault()
 type Setting struct {
 	Client *client.Options `yaml:"client"`
 	Server *server.Options `yaml:"server"`
+	isLoad int32
 }
 
 var newDefault = func() *Setting {
@@ -66,19 +66,46 @@ func SetPath(p string) error {
 	return nil
 }
 
-// GetClient 获取Client端默认配置.
-func GetClient() (*client.Options, error) {
+// loadConfig 加载Config函数,通过yaml.v3包从读取的字节流中获取config内容.
+func loadConfig() error {
+	if config == nil {
+		config = newDefault()
+	}
+	// 已经加载过配置,直接返回.
+	if config.isLoad == 1 {
+		return nil
+	}
+
 	var err error
 	if configStream == nil {
 		configStream, err = readConfigBytes()
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	err = yaml.Unmarshal(configStream, config)
+	atomic.AddInt32(&config.isLoad, 1)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetClient 获取Client端默认配置.
+func GetClient() (*client.Options, error) {
+	err := loadConfig()
 	if err != nil {
 		return nil, err
 	}
 	return config.Client, nil
+}
+
+// GetServer 获取Server端默认配置.
+func GetServer() (*server.Options, error) {
+	err := loadConfig()
+	if err != nil {
+		return nil, err
+	}
+	return config.Server, nil
 }
