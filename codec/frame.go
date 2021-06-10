@@ -1,9 +1,86 @@
 package codec
 
-type FrameType uint8
-type MsgType uint8
-type ReqType uint8
-type CompressType uint8
+import (
+	"encoding/binary"
+	"errors"
+	"io"
+	"net"
+)
+
+var (
+	FrameHeaderReadError  = errors.New("frame header read error")
+	MagicNumberError      = errors.New("magic number error ")
+	RPCVersionError       = errors.New("version error")
+	PayloadOutLengthError = errors.New("payload beyond max length")
+	PayloadReadError      = errors.New("read payload error")
+)
+
+func init() {
+	DefaultFramerBuilder = &defaultFramerBuilder{}
+}
+
+var DefaultFramerBuilder FramerBuilder
+
+type FramerBuilder interface {
+	New(conn net.Conn) Framer
+}
+
+type Framer interface {
+	ReadFrame() ([]byte, error)
+}
+
+type defaultFramerBuilder struct{}
+
+func (fb *defaultFramerBuilder) New(conn net.Conn) Framer {
+	return &framer{
+		conn:       conn,
+		readBuffer: make([]byte, DefaultBufferLength),
+	}
+}
+
+type framer struct {
+	counter    int
+	conn       net.Conn
+	readBuffer []byte
+}
+
+// ReadFrame 读取帧信息，先判断帧头信息，再对魔数、版本号进行判断，最后读取完整payload.
+func (f *framer) ReadFrame() ([]byte, error) {
+	var n int
+	var err error
+	frameHeader := make([]byte, FrameHeaderLen)
+	n, err = io.ReadFull(f.conn, frameHeader)
+	if n != FrameHeaderLen || err != nil {
+		if n == 0 {
+			return nil, io.EOF
+		}
+		return nil, FrameHeaderReadError
+	}
+
+	if magic := frameHeader[0]; magic != Magic {
+		return nil, MagicNumberError
+	}
+	if version := frameHeader[1]; Version != version {
+		return nil, RPCVersionError
+	}
+
+	length := binary.BigEndian.Uint32(frameHeader[7:11]) - FrameHeaderLen
+	if length > MaxPayloadLength {
+		return nil, PayloadOutLengthError
+	}
+	if length > uint32(len(f.readBuffer)) && f.counter < 12 {
+		f.readBuffer = make([]byte, len(f.readBuffer)*2)
+		f.counter++
+	}
+
+	if n, err = io.ReadFull(f.conn, f.readBuffer[:length]); uint32(n) != length || err == io.EOF {
+		return nil, PayloadReadError
+	}
+	return append(frameHeader, f.readBuffer[:length]...), nil
+}
+
+const DefaultBufferLength = 1024
+const MaxPayloadLength = 4 * 1024 * 1024
 
 // FrameHeader 帧头.
 type FrameHeader struct {
@@ -12,15 +89,15 @@ type FrameHeader struct {
 	// Version 版本号.
 	Version uint8
 	// MsgType 消息类型.
-	MsgType MsgType
+	MsgType uint8
 	// ReqType 请求类型.
-	ReqType ReqType
+	ReqType uint8
 	// CompressType 压缩类型.
-	CompressType CompressType
+	CompressType uint8
 	// StreamID 暂时没用，后续扩展.
 	StreamID uint8
-	// FrameType 用于帧解析出Header.
-	FrameType FrameType
+	// PackageType 用于包头压缩类型
+	PackageType uint8
 	// Length 帧长度.
 	Length uint32
 	// Reserved 保留位.
@@ -31,24 +108,54 @@ const Magic = 0x12
 const Version = 0
 const FrameHeaderLen = 15
 
+// 协议protocol打包类型.
 const (
-	Proto FrameType = iota
+	Proto = iota
 	Thrift
-	arvo
+	Arvo
 )
 
+// 压缩类型.
 const (
-	NoneCompress CompressType = iota
+	NoneCompress = iota
 )
 
+// 消息类型.
 const (
-	GeneralMsg MsgType = 0x0
-	HeartMsg   MsgType = 0x1
+	GeneralMsg = 0x0
+	HeartMsg   = 0x1
 )
 
+// 请求类型.
 const (
-	SendAndRecv ReqType = iota
+	SendAndRecv = iota
 	SendOnly
 	LongConn
 	StreamTrans
 )
+
+// PackageTypeToString 解析uint8类型的packageType帧头
+func PackageTypeToString(t uint8) string {
+	switch t {
+	case 0:
+		return "proto"
+	case 1:
+		return "thrift"
+	default:
+		return "arvo"
+	}
+}
+
+// StrToPackageType string类型转到uint8放到帧头压缩.
+func StrToPackageType(t string) uint8 {
+	switch t {
+	case "proto", "Proto":
+		return 0
+	case "thrift", "Thrift":
+		return 1
+	case "Arvo", "arvo":
+		return 2
+	default:
+		return 3
+	}
+}
