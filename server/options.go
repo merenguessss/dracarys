@@ -32,6 +32,30 @@ func WithNetWork(network string) Option {
 	}
 }
 
+func WithCodecType(codecType string) Option {
+	return func(o *Options) {
+		o.codecType = codecType
+	}
+}
+
+func WithBeforeHandle(iter ...interceptor.Interceptor) Option {
+	return func(o *Options) {
+		o.beforeHandle = append(o.beforeHandle, iter...)
+	}
+}
+
+func WithAfterHandle(iter ...interceptor.Interceptor) Option {
+	return func(o *Options) {
+		o.afterHandle = append(o.afterHandle, iter...)
+	}
+}
+
+func WithSerializerType(serializerType string) Option {
+	return func(o *Options) {
+		o.serializerType = serializerType
+	}
+}
+
 func WithKeepAlivePeriod(t time.Duration) Option {
 	return func(o *Options) {
 		o.keepAlivePeriod = t

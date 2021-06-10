@@ -3,6 +3,7 @@ package transport
 import (
 	"context"
 	"errors"
+	"io"
 	"log"
 	"net"
 	"time"
@@ -140,6 +141,9 @@ func (st *defaultServerTransport) handleConn(ctx context.Context, conn net.Conn)
 		// 读请求
 		framer := codec.DefaultFramerBuilder.New(conn)
 		req, err = framer.ReadFrame()
+		if err == io.EOF {
+			return nil
+		}
 		if err != nil {
 			return errors.New("read frame error  " + err.Error())
 		}

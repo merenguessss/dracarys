@@ -4,46 +4,55 @@ import (
 	"context"
 
 	"github.com/merenguessss/dracarys-go/codec"
+	"github.com/merenguessss/dracarys-go/codec/protocol"
 	"github.com/merenguessss/dracarys-go/interceptor"
 	"github.com/merenguessss/dracarys-go/serialization"
 	"github.com/merenguessss/dracarys-go/transport"
 )
 
 type Client interface {
-	Invoke(ctx context.Context, req, rep interface{}, path string, option ...Option) error
+	Invoke(ctx context.Context, req interface{}, path string, option ...Option) (interface{}, error)
 }
 
-var DefaultClient = New()
-
 func New() *defaultClient {
-	return &defaultClient{}
+	return &defaultClient{
+		option: &Options{},
+	}
 }
 
 type defaultClient struct {
 	option *Options
 }
 
-func (c *defaultClient) Invoke(ctx context.Context, req, rep interface{}, path string,
-	option ...Option) error {
+func (c *defaultClient) Invoke(ctx context.Context, req interface{}, path string,
+	option ...Option) (interface{}, error) {
 	for _, op := range option {
 		op(c.option)
 	}
-	return interceptor.Invoke(ctx, req, rep, c.invoke, c.option.beforeHandle)
+	r := []interface{}{req}
+	return interceptor.Invoke(ctx, r, c.invoke, c.option.beforeHandle)
 }
 
-func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error {
-	serializer := serialization.Get(c.option.serializerType)
+func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{}, error) {
+	msg := codec.MsgBuilder.Default()
+	serializer := serialization.Get(msg.SerializerType())
 	reqBuf, err := serializer.Marshal(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	msg := codec.MsgBuilder.Default()
-	coder := codec.Get(c.option.codecType)
-	reqBody, err := coder.Decode(msg, reqBuf)
-	_, err = coder.Decode(msg, reqBuf)
+	msg.WithServerServiceName(c.option.ServiceName)
+	msg.WithRPCMethodName(c.option.MethodName)
+	protocolCoder := protocol.GetClientCodec(msg.PackageType())
+	reqBuf, err = protocolCoder.Encode(msg, reqBuf)
 	if err != nil {
-		return err
+		return nil, err
+	}
+
+	coder := codec.Get(c.option.codecType)
+	reqBody, err := coder.Encode(msg, reqBuf)
+	if err != nil {
+		return nil, err
 	}
 
 	addr := c.findAddress()
@@ -55,10 +64,29 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 		transport.WithNetWork(transport.Network(c.option.NetWork)),
 	}
 	clientTransport := c.NewClientTransport()
+	repBody, err := clientTransport.Send(ctx, reqBody, transportOption...)
+	if err != nil {
+		return nil, err
+	}
 
-	_, err = clientTransport.Send(ctx, reqBody, transportOption...)
+	repBuf, err := coder.Decode(msg, repBody)
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
+	protocolCoder = protocol.GetClientCodec(msg.PackageType())
+	repBuf, err = protocolCoder.Decode(msg, repBuf)
+	if err != nil {
+		return nil, err
+	}
+
+	var rep interface{}
+	serializer = serialization.Get(msg.SerializerType())
+	err = serializer.Unmarshal(repBuf, &rep)
+	if err != nil {
+		return nil, err
+	}
+	return rep, nil
 }
 
 func (c *defaultClient) NewClientTransport() transport.ClientTransport {
@@ -66,5 +94,5 @@ func (c *defaultClient) NewClientTransport() transport.ClientTransport {
 }
 
 func (c *defaultClient) findAddress() string {
-	return ""
+	return c.option.Addr
 }

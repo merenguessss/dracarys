@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -18,12 +19,12 @@ var DefaultConnPool = newDefaultPool()
 
 var newDefaultPool = func(options ...Option) Pool {
 	opts := &Options{
-		MaxIdle:     100,
-		MaxActive:   10,
-		CoreIdle:    10,
+		MaxIdle:     10000,
+		MaxActive:   1000,
+		CoreIdle:    1000,
 		Wait:        true,
-		IdleTimeout: 1 * time.Minute,
-		DialTimeout: 200 * time.Millisecond,
+		IdleTimeout: 2 * time.Minute,
+		DialTimeout: 800 * time.Millisecond,
 	}
 	for _, o := range options {
 		o(opts)
@@ -93,7 +94,7 @@ func (p *pool) Get(ctx context.Context, network string, address string) (net.Con
 
 	v, ok := p.connMap.LoadOrStore(address, newPool)
 	if !ok {
-		newPool.checkFreeConn(5*time.Second, newPool.checkConn)
+		newPool.checkFreeConn(2*time.Second, newPool.checkConn)
 	}
 	return v.(*channelPool).get(ctx)
 }
@@ -110,50 +111,41 @@ type channelPool struct {
 	dial        func(ctx context.Context) (net.Conn, error)
 	ch          chan *poolConn
 	mu          sync.RWMutex
-	activeNum   int
+	activeNum   int32
 }
 
 // get 从连接池中获取一个conn连接.
 func (cp *channelPool) get(ctx context.Context) (*poolConn, error) {
 	if cp.ch == nil {
-		cp.ch = make(chan *poolConn, cp.maxActive)
+		return nil, ConnCloseError
 	}
 
-	if len(cp.ch) < cp.coreIdle {
-		pc, err := cp.getPoolConn(ctx)
-		if err != nil {
-			return nil, err
-		}
+	// 无限循环保证一定会取得一个连接，无法取得连接的情况只会是拒绝策略.
+	for {
+		select {
+		case pc := <-cp.ch:
+			if pc != nil && !pc.unusable {
+				return pc, nil
+			}
+		default:
+			cp.mu.RLock()
+			if cp.ch == nil {
+				cp.ch = make(chan *poolConn, cp.maxActive)
+			}
 
-		err = cp.Put(pc)
-		if err != nil {
-			return nil, err
+			if int(cp.activeNum)+len(cp.ch) >= cp.maxIdle {
+				// TODO 拒绝策略
+				cp.mu.RUnlock()
+				return nil, OutMaxConnError
+			}
+			pc, err := cp.getPoolConn(ctx)
+			if err != nil {
+				cp.mu.RUnlock()
+				return nil, err
+			}
+			atomic.AddInt32(&cp.activeNum, 1)
+			return pc, nil
 		}
-		return pc, nil
-	}
-
-	select {
-	case pc := <-cp.ch:
-		if pc == nil {
-			return nil, ConnCloseError
-		}
-		if pc.unusable {
-			return nil, ConnCloseError
-		}
-		return pc, nil
-	default:
-		cp.mu.RLock()
-		defer cp.mu.RUnlock()
-		if cp.activeNum+len(cp.ch) >= cp.maxIdle {
-			// TODO 拒绝策略
-			return nil, OutMaxConnError
-		}
-		pc, err := cp.getPoolConn(ctx)
-		if err != nil {
-			return nil, err
-		}
-		cp.activeNum++
-		return pc, nil
 	}
 }
 
@@ -206,13 +198,32 @@ func (cp *channelPool) checkConn(conn *poolConn) bool {
 	return false
 }
 
+// Close 关闭线程池.
+func (cp *channelPool) Close() {
+	cp.mu.Lock()
+	ch := cp.ch
+	cp.ch = nil
+	cp.dial = nil
+	cp.mu.Unlock()
+
+	if ch == nil {
+		return
+	}
+	close(ch)
+	for conn := range ch {
+		conn.recycling()
+		conn.Close()
+	}
+}
+
+// Put 像线程池中加入一个连接.
 func (cp *channelPool) Put(conn *poolConn) error {
 	if conn == nil {
 		return ConnCloseError
 	}
-	cp.mu.Lock()
-	defer cp.mu.Unlock()
-	if cp.ch == nil {
+	cp.mu.RLock()
+	defer cp.mu.RUnlock()
+	if cp.ch == nil || len(cp.ch) >= cp.coreIdle {
 		conn.recycling()
 		return conn.Close()
 	}
@@ -221,6 +232,7 @@ func (cp *channelPool) Put(conn *poolConn) error {
 	case cp.ch <- conn:
 		return nil
 	default:
+		conn.recycling()
 		return conn.Close()
 	}
 }
@@ -244,7 +256,7 @@ func (conn *poolConn) remoteSend() bool {
 		_ = conn.Conn.SetDeadline(time.Time{})
 	}()
 
-	if n, err := conn.Conn.Read(oneByte); err == io.EOF || n == 0 {
+	if n, err := conn.Read(oneByte); err == io.EOF || n == 0 {
 		return false
 	}
 	return true
@@ -268,6 +280,7 @@ func (conn *poolConn) recycling() {
 	conn.mu.Lock()
 	defer conn.mu.Unlock()
 	conn.unusable = true
+	atomic.AddInt32(&conn.c.activeNum, -1)
 }
 
 // wrapConn 将net.Conn类型封装为poolConn类型.
@@ -279,4 +292,30 @@ func (cp *channelPool) wrapConn(conn net.Conn) *poolConn {
 		t:           time.Now(),
 	}
 	return pc
+}
+
+// Write 为poolConn重写Conn接口的Write方法.
+func (conn *poolConn) Write(b []byte) (int, error) {
+	if conn.unusable {
+		return 0, ConnCloseError
+	}
+	n, err := conn.Conn.Write(b)
+	if err != nil {
+		conn.recycling()
+		conn.Conn.Close()
+	}
+	return n, err
+}
+
+// Read 为poolConn重写Conn接口的Read方法.
+func (conn *poolConn) Read(b []byte) (int, error) {
+	if conn.unusable {
+		return 0, ConnCloseError
+	}
+	n, err := conn.Conn.Read(b)
+	if err != nil {
+		conn.recycling()
+		conn.Conn.Close()
+	}
+	return n, err
 }
