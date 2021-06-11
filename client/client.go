@@ -11,12 +11,12 @@ import (
 )
 
 type Client interface {
-	Invoke(ctx context.Context, req interface{}, path string, option ...Option) (interface{}, error)
+	Invoke(ctx context.Context, req, rep interface{}, option ...Option) error
 }
 
-func New() *defaultClient {
+func New(o *Options) *defaultClient {
 	return &defaultClient{
-		option: &Options{},
+		option: o,
 	}
 }
 
@@ -24,35 +24,33 @@ type defaultClient struct {
 	option *Options
 }
 
-func (c *defaultClient) Invoke(ctx context.Context, req interface{}, path string,
-	option ...Option) (interface{}, error) {
+func (c *defaultClient) Invoke(ctx context.Context, req, rep interface{},
+	option ...Option) error {
 	for _, op := range option {
 		op(c.option)
 	}
-	r := []interface{}{req}
-	return interceptor.Invoke(ctx, r, c.invoke, c.option.beforeHandle)
+	return interceptor.ClientInvoke(ctx, req, rep, c.invoke, c.option.beforeHandle)
 }
 
-func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{}, error) {
-	msg := codec.MsgBuilder.Default()
+func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error {
+	msg := c.getMsg()
+
 	serializer := serialization.Get(msg.SerializerType())
 	reqBuf, err := serializer.Marshal(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	msg.WithServerServiceName(c.option.ServiceName)
-	msg.WithRPCMethodName(c.option.MethodName)
 	protocolCoder := protocol.GetClientCodec(msg.PackageType())
 	reqBuf, err = protocolCoder.Encode(msg, reqBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	coder := codec.Get(c.option.codecType)
+	coder := codec.Get(c.option.CodecType)
 	reqBody, err := coder.Encode(msg, reqBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	addr := c.findAddress()
@@ -66,27 +64,26 @@ func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{
 	clientTransport := c.NewClientTransport()
 	repBody, err := clientTransport.Send(ctx, reqBody, transportOption...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	repBuf, err := coder.Decode(msg, repBody)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	protocolCoder = protocol.GetClientCodec(msg.PackageType())
 	repBuf, err = protocolCoder.Decode(msg, repBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var rep interface{}
 	serializer = serialization.Get(msg.SerializerType())
 	err = serializer.Unmarshal(repBuf, &rep)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return rep, nil
+	return nil
 }
 
 func (c *defaultClient) NewClientTransport() transport.ClientTransport {
@@ -95,4 +92,13 @@ func (c *defaultClient) NewClientTransport() transport.ClientTransport {
 
 func (c *defaultClient) findAddress() string {
 	return c.option.Addr
+}
+
+func (c *defaultClient) getMsg() codec.Msg {
+	mb := codec.NewMsgBuilder()
+	return mb.WithCompressType(c.option.CompressType).
+		WithSerializerType(c.option.SerializerType).
+		WithPackageType(c.option.CompressType).
+		WithServerServiceName(c.option.serviceName).
+		WithRPCMethodName(c.option.methodName).Build()
 }

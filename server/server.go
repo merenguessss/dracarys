@@ -40,7 +40,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 		method := srvType.Method(i)
 
 		methodFilter := func(ctx context.Context, parse func(interface{}) error,
-			beforeHandle []interceptor.Interceptor) (interface{}, error) {
+			beforeHandle []interceptor.ServerHandler) (interface{}, error) {
 			in := make([]interface{}, 0)
 			var params []reflect.Value
 
@@ -59,7 +59,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 				return value[0].Interface(), nil
 			}
 
-			return interceptor.Invoke(ctx, in, handler, beforeHandle)
+			return interceptor.ServerHandle(ctx, beforeHandle, handler, in)
 		}
 
 		methods[i] = &Method{

@@ -1,0 +1,5 @@
+client:
+  serializer: proto
+
+server:
+  name: dracarys

@@ -35,7 +35,7 @@ func (d *dispatcher) Handle(ctx context.Context, b []byte) ([]byte, error) {
 	default:
 	}
 
-	msg := codec.MsgBuilder.Default()
+	msg := codec.NewMsgBuilder().Build()
 	var rep []byte
 
 	coder := codec.DefaultCodec

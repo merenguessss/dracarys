@@ -8,43 +8,53 @@ import (
 )
 
 type Options struct {
-	address         string
-	network         string
-	keepAlivePeriod time.Duration
+	ServerName      string        `yaml:"name"`
+	Port            string        `yaml:"port"`
+	Network         string        `yaml:"network"`
+	KeepAlivePeriod time.Duration `yaml:"keep_alive_period"`
+	SerializerType  string        `yaml:"serializer"`
+	CodecType       string        `yaml:"codec"`
+	CompressType    string        `yaml:"compress"`
+	Address         string
 	PluginFactory   plugin.Factory
-	serializerType  string
-	codecType       string
-	beforeHandle    []interceptor.Interceptor
-	afterHandle     []interceptor.Interceptor
+	beforeHandle    []interceptor.ServerHandler
+	afterHandle     []interceptor.ServerHandler
 }
 
 type Option func(*Options)
 
+func WithPort(port string) Option {
+	return func(o *Options) {
+		o.Address = "127.0.0.1:" + port
+		o.Port = port
+	}
+}
+
 func WithAddress(addr string) Option {
 	return func(o *Options) {
-		o.address = addr
+		o.Address = addr
 	}
 }
 
 func WithNetWork(network string) Option {
 	return func(o *Options) {
-		o.network = network
+		o.Network = network
 	}
 }
 
 func WithCodecType(codecType string) Option {
 	return func(o *Options) {
-		o.codecType = codecType
+		o.CodecType = codecType
 	}
 }
 
-func WithBeforeHandle(iter ...interceptor.Interceptor) Option {
+func WithBeforeHandle(iter ...interceptor.ServerHandler) Option {
 	return func(o *Options) {
 		o.beforeHandle = append(o.beforeHandle, iter...)
 	}
 }
 
-func WithAfterHandle(iter ...interceptor.Interceptor) Option {
+func WithAfterHandle(iter ...interceptor.ServerHandler) Option {
 	return func(o *Options) {
 		o.afterHandle = append(o.afterHandle, iter...)
 	}
@@ -52,12 +62,12 @@ func WithAfterHandle(iter ...interceptor.Interceptor) Option {
 
 func WithSerializerType(serializerType string) Option {
 	return func(o *Options) {
-		o.serializerType = serializerType
+		o.SerializerType = serializerType
 	}
 }
 
 func WithKeepAlivePeriod(t time.Duration) Option {
 	return func(o *Options) {
-		o.keepAlivePeriod = t
+		o.KeepAlivePeriod = t
 	}
 }
