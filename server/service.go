@@ -30,7 +30,7 @@ type Method struct {
 }
 
 type FilterFunc func(ctx context.Context, parse func(interface{}) error,
-	handlers []interceptor.Interceptor) (rep interface{}, err error)
+	handlers []interceptor.ServerHandler) (rep interface{}, err error)
 
 type service struct {
 	ctx         context.Context

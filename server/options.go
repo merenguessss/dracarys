@@ -17,8 +17,8 @@ type Options struct {
 	CompressType    string        `yaml:"compress"`
 	Address         string
 	PluginFactory   plugin.Factory
-	beforeHandle    []interceptor.Interceptor
-	afterHandle     []interceptor.Interceptor
+	beforeHandle    []interceptor.ServerHandler
+	afterHandle     []interceptor.ServerHandler
 }
 
 type Option func(*Options)
@@ -48,13 +48,13 @@ func WithCodecType(codecType string) Option {
 	}
 }
 
-func WithBeforeHandle(iter ...interceptor.Interceptor) Option {
+func WithBeforeHandle(iter ...interceptor.ServerHandler) Option {
 	return func(o *Options) {
 		o.beforeHandle = append(o.beforeHandle, iter...)
 	}
 }
 
-func WithAfterHandle(iter ...interceptor.Interceptor) Option {
+func WithAfterHandle(iter ...interceptor.ServerHandler) Option {
 	return func(o *Options) {
 		o.afterHandle = append(o.afterHandle, iter...)
 	}
