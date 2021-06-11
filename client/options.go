@@ -17,8 +17,8 @@ type Options struct {
 	serviceName       string
 	methodName        string
 	PluginFactory     plugin.Factory
-	beforeHandle      []interceptor.Interceptor
-	afterHandle       []interceptor.Interceptor
+	beforeHandle      []interceptor.ClientInvoker
+	afterHandle       []interceptor.ClientInvoker
 }
 
 type Option func(*Options)
@@ -77,13 +77,13 @@ func WithSerializerType(serializerType string) Option {
 	}
 }
 
-func WithBeforeHandle(h []interceptor.Interceptor) Option {
+func WithBeforeHandle(h []interceptor.ClientInvoker) Option {
 	return func(options *Options) {
 		options.beforeHandle = h
 	}
 }
 
-func WithAfterHandle(h []interceptor.Interceptor) Option {
+func WithAfterHandle(h []interceptor.ClientInvoker) Option {
 	return func(options *Options) {
 		options.afterHandle = h
 	}

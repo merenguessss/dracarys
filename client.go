@@ -32,17 +32,30 @@ func (c *Client) Service(name string) {
 	c.opts = append(c.opts, client.WithService(name))
 }
 
+func (c *Client) CallStruct(methodName string, rep interface{}, req ...interface{}) error {
+	c.opts = append(c.opts, client.WithMethod(methodName))
+	return c.c.Invoke(context.Background(), req, rep, c.opts...)
+}
+
 // Call 通过MethodName定位请求到具体的req.
 func (c *Client) Call(methodName string, req ...interface{}) (interface{}, error) {
 	c.opts = append(c.opts, client.WithMethod(methodName))
-	return c.c.Invoke(context.Background(), req, c.opts...)
+	var rep interface{}
+	if err := c.c.Invoke(context.Background(), req, rep, c.opts...); err != nil {
+		return nil, err
+	}
+	return rep, nil
 }
 
 // Method 获取具体Method.
 func (c *Client) Method(name string) Method {
 	c.opts = append(c.opts, client.WithMethod(name))
 	return func(req ...interface{}) (interface{}, error) {
-		return c.c.Invoke(context.Background(), req, c.opts...)
+		var rep interface{}
+		if err := c.c.Invoke(context.Background(), req, rep, c.opts...); err != nil {
+			return nil, err
+		}
+		return rep, nil
 	}
 }
 
@@ -54,7 +67,11 @@ func (c *Client) ServiceAndMethod(name string) (Method, error) {
 	}
 	c.opts = append(c.opts, client.WithService(serviceName), client.WithMethod(methodName))
 	return func(req ...interface{}) (interface{}, error) {
-		return c.c.Invoke(context.Background(), req, c.opts...)
+		var rep interface{}
+		if err := c.c.Invoke(context.Background(), req, rep, c.opts...); err != nil {
+			return nil, err
+		}
+		return rep, nil
 	}, nil
 }
 

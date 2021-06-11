@@ -11,7 +11,7 @@ import (
 )
 
 type Client interface {
-	Invoke(ctx context.Context, req interface{}, option ...Option) (interface{}, error)
+	Invoke(ctx context.Context, req, rep interface{}, option ...Option) error
 }
 
 func New(o *Options) *defaultClient {
@@ -24,33 +24,33 @@ type defaultClient struct {
 	option *Options
 }
 
-func (c *defaultClient) Invoke(ctx context.Context, req interface{},
-	option ...Option) (interface{}, error) {
+func (c *defaultClient) Invoke(ctx context.Context, req, rep interface{},
+	option ...Option) error {
 	for _, op := range option {
 		op(c.option)
 	}
-	return interceptor.Invoke(ctx, req, c.invoke, c.option.beforeHandle)
+	return interceptor.ClientInvoke(ctx, req, rep, c.invoke, c.option.beforeHandle)
 }
 
-func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{}, error) {
+func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error {
 	msg := c.getMsg()
 
 	serializer := serialization.Get(msg.SerializerType())
 	reqBuf, err := serializer.Marshal(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	protocolCoder := protocol.GetClientCodec(msg.PackageType())
 	reqBuf, err = protocolCoder.Encode(msg, reqBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	coder := codec.Get(c.option.CodecType)
 	reqBody, err := coder.Encode(msg, reqBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	addr := c.findAddress()
@@ -64,27 +64,26 @@ func (c *defaultClient) invoke(ctx context.Context, req interface{}) (interface{
 	clientTransport := c.NewClientTransport()
 	repBody, err := clientTransport.Send(ctx, reqBody, transportOption...)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	repBuf, err := coder.Decode(msg, repBody)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	protocolCoder = protocol.GetClientCodec(msg.PackageType())
 	repBuf, err = protocolCoder.Decode(msg, repBuf)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var rep interface{}
 	serializer = serialization.Get(msg.SerializerType())
 	err = serializer.Unmarshal(repBuf, &rep)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return rep, nil
+	return nil
 }
 
 func (c *defaultClient) NewClientTransport() transport.ClientTransport {

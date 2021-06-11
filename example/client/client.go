@@ -16,9 +16,14 @@ func main() {
 	}
 	c := dracarys.NewClient(opts...)
 	c.Service("Hello")
-	res, err := c.Call("World", "1111", "1222")
+	res := Res{}
+	err := c.CallStruct("World", &res, "1111", "1222")
 	if err != nil {
 		fmt.Println(err)
 	}
 	fmt.Println(res)
+}
+
+type Res struct {
+	S string
 }
