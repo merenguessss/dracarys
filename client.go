@@ -32,6 +32,7 @@ func (c *Client) Service(name string) {
 	c.opts = append(c.opts, client.WithService(name))
 }
 
+// CallStruct 请求直接返回结构体的方法,传入结构体.
 func (c *Client) CallStruct(methodName string, rep interface{}, req ...interface{}) error {
 	c.opts = append(c.opts, client.WithMethod(methodName))
 	return c.c.Invoke(context.Background(), req, rep, c.opts...)
