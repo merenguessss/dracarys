@@ -4,7 +4,7 @@ type Options struct {
 	SelectorName      string `yaml:"name"`
 	Address           string `yaml:"address"`
 	Scheme            string `yaml:"scheme"`
-	EnableHeartbeat   bool   `yaml:"heartbeat"`
+	EnableHeartbeat   bool   `yaml:"enable-heartbeat"`
 	*HeartbeatOptions `yaml:"heartbeat"`
 }
 
