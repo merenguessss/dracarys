@@ -66,6 +66,12 @@ func (c *Consul) RegisterService(name, address string) error {
 	registration.ID = name + "/" + address
 	registration.Address = address
 	registration.Name = name
+	// 初始化权重,黑白名单.
+	registration.Meta = map[string]string{
+		"weights":   "100",
+		"blacklist": "",
+		"whitelist": "",
+	}
 
 	if err := c.client.Agent().ServiceRegister(registration); err != nil {
 		return err
@@ -88,6 +94,7 @@ func (c *Consul) Select(name string) ([]*Node, error) {
 		nodes[i] = &Node{
 			Key:   serviceName,
 			Value: v.Address,
+			Meta:  v.Meta,
 		}
 	}
 	return nodes, nil
