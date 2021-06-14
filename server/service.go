@@ -49,6 +49,7 @@ func (s *service) Register(methodName string, method FilterFunc) {
 
 func (s *service) Serve(o *Options) error {
 	s.opt = o
+	slt := s.opt.PluginFactory.GetSelector()
 
 	tsOpt := []transport.ServerOption{
 		transport.WithAddress(s.opt.Address),
@@ -61,6 +62,11 @@ func (s *service) Serve(o *Options) error {
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	if err := st.ListenAndServe(s.ctx, tsOpt...); err != nil {
 		return errors.New(s.serviceName + " service transport error " + err.Error())
+	}
+
+	if err := slt.RegisterService(s.serviceName, s.opt.Address); err != nil {
+		return err
+		// todo log err
 	}
 
 	<-s.ctx.Done()
