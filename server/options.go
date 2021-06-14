@@ -8,17 +8,18 @@ import (
 )
 
 type Options struct {
-	ServerName      string        `yaml:"name"`
-	Port            string        `yaml:"port"`
-	Network         string        `yaml:"network"`
-	KeepAlivePeriod time.Duration `yaml:"keep_alive_period"`
-	SerializerType  string        `yaml:"serializer"`
-	CodecType       string        `yaml:"codec"`
-	CompressType    string        `yaml:"compress"`
-	Address         string
-	PluginFactory   plugin.Factory
-	beforeHandle    []interceptor.ServerHandler
-	afterHandle     []interceptor.ServerHandler
+	ServerName           string        `yaml:"name"`
+	Port                 string        `yaml:"port"`
+	Network              string        `yaml:"network"`
+	KeepAlivePeriod      time.Duration `yaml:"keep_alive_period"`
+	SerializerType       string        `yaml:"serializer"`
+	CodecType            string        `yaml:"codec"`
+	CompressType         string        `yaml:"compress"`
+	Address              string
+	PluginFactoryOptions []plugin.Option
+	PluginFactory        *plugin.Factory
+	beforeHandle         []interceptor.ServerHandler
+	afterHandle          []interceptor.ServerHandler
 }
 
 type Option func(*Options)
@@ -69,5 +70,17 @@ func WithSerializerType(serializerType string) Option {
 func WithKeepAlivePeriod(t time.Duration) Option {
 	return func(o *Options) {
 		o.KeepAlivePeriod = t
+	}
+}
+
+func WithPluginFactory(p *plugin.Factory) Option {
+	return func(o *Options) {
+		o.PluginFactory = p
+	}
+}
+
+func WithPluginFactoryOptions(o []plugin.Option) Option {
+	return func(options *Options) {
+		options.PluginFactoryOptions = o
 	}
 }

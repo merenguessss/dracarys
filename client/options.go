@@ -6,19 +6,20 @@ import (
 )
 
 type Options struct {
-	ClientName        string `yaml:"name"`
-	Addr              string `yaml:"address"`
-	SerializerType    string `yaml:"serializer"`
-	CodecType         string `yaml:"codec"`
-	EnableMultiplexed bool   `yaml:"enable_multiplexed"`
-	DisableConnPool   bool   `yaml:"disable_connection_pool"`
-	NetWork           string `yaml:"network"`
-	CompressType      string `yaml:"compress"`
-	serviceName       string
-	methodName        string
-	PluginFactory     plugin.Factory
-	beforeHandle      []interceptor.ClientInvoker
-	afterHandle       []interceptor.ClientInvoker
+	ClientName           string `yaml:"name"`
+	Addr                 string `yaml:"address"`
+	SerializerType       string `yaml:"serializer"`
+	CodecType            string `yaml:"codec"`
+	EnableMultiplexed    bool   `yaml:"enable_multiplexed"`
+	DisableConnPool      bool   `yaml:"disable_connection_pool"`
+	NetWork              string `yaml:"network"`
+	CompressType         string `yaml:"compress"`
+	serviceName          string
+	methodName           string
+	PluginFactoryOptions []plugin.Option
+	PluginFactory        *plugin.Factory
+	beforeHandle         []interceptor.ClientInvoker
+	afterHandle          []interceptor.ClientInvoker
 }
 
 type Option func(*Options)
@@ -89,9 +90,15 @@ func WithAfterHandle(h []interceptor.ClientInvoker) Option {
 	}
 }
 
-func WithPluginFactory(p plugin.Factory) Option {
+func WithPluginFactory(p *plugin.Factory) Option {
 	return func(options *Options) {
 		options.PluginFactory = p
+	}
+}
+
+func WithPluginFactoryOptions(o []plugin.Option) Option {
+	return func(options *Options) {
+		options.PluginFactoryOptions = o
 	}
 }
 
