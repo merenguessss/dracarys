@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"reflect"
+	"sync"
 
 	"github.com/merenguessss/dracarys-go/interceptor"
 )
@@ -101,10 +102,16 @@ func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option)
 }
 
 func (s *Server) Serve() error {
+	var wg sync.WaitGroup
+	wg.Add(len(s.ServiceMap))
 	for _, v := range s.ServiceMap {
-		if err := v.Serve(s.Options); err != nil {
-			return err
-		}
+		go func(src Service) {
+			if err := src.Serve(s.Options); err != nil {
+				// log
+			}
+			wg.Done()
+		}(v)
 	}
+	wg.Wait()
 	return nil
 }
