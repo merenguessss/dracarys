@@ -22,9 +22,17 @@ func NewClient(opts ...client.Option) *Client {
 		// todo log err
 		o = &client.Options{}
 	}
+
+	for _, op := range opts {
+		op(o)
+	}
+
+	if err = o.PluginFactory.Setup(o.PluginFactoryOptions...); err != nil {
+		// todo log
+		// panic?
+	}
 	return &Client{
-		c:    client.New(o),
-		opts: opts,
+		c: client.New(o),
 	}
 }
 
