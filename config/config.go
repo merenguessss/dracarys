@@ -58,17 +58,18 @@ func readConfigBytes() ([]byte, error) {
 		}
 	}
 
-	if pathExist(path) {
+	if !pathExist(path) {
 		return nil, ErrorConfigFileNotExist
 	}
 	return ioutil.ReadFile(path)
 }
 
 // pathExist 判断是否存在config文件.
+// 如果存在返回true, 不存在返回false.
 func pathExist(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
-		return os.IsNotExist(err)
+		return os.IsExist(err)
 	}
 	return true
 }
