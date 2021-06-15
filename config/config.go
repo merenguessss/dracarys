@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/merenguessss/dracarys-go/client"
+	"github.com/merenguessss/dracarys-go/log"
 	"github.com/merenguessss/dracarys-go/plugin"
 	"github.com/merenguessss/dracarys-go/server"
 
@@ -26,6 +27,7 @@ type Setting struct {
 	Client *client.Options `yaml:"client"`
 	Server *server.Options `yaml:"server"`
 	Plugin *plugin.Options `yaml:"plugin"`
+	Logger *log.Options    `yaml:"log"`
 	isLoad int32
 }
 
@@ -43,6 +45,7 @@ var newDefault = func() *Setting {
 			CodecType:       "proto",
 		},
 		Plugin: plugin.DefaultConfig(),
+		Logger: log.DefaultOptions,
 	}
 }
 
@@ -116,6 +119,7 @@ func loadConfig() error {
 	if err != nil {
 		return err
 	}
+	log.DefaultLogger = log.New(config.Logger)
 	atomic.AddInt32(&config.isLoad, 1)
 	return nil
 }
