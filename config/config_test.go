@@ -28,4 +28,18 @@ func TestConfig(t *testing.T) {
 	if server.ServerName != "dracarys" {
 		t.Error("config fail")
 	}
+
+	if config.Plugin.Selector.SelectorName != "default" ||
+		config.Plugin.Selector.Timeout != "2s" {
+		t.Error("config fail")
+	}
+}
+
+func TestPathExist(t *testing.T) {
+	if !pathExist("test_dracarys.yml") {
+		t.Error("eeee")
+	}
+	if pathExist("sssss") {
+		t.Error("eee")
+	}
 }

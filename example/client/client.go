@@ -17,7 +17,7 @@ func main() {
 	c := dracarys.NewClient(opts...)
 	c.Service("Hello")
 	res := Res{}
-	err := c.CallStruct("World", &res, "1111", "1222")
+	err := c.CallWithReturnValue("World", &res, "1111", "1222")
 	if err != nil {
 		fmt.Println(err)
 	}

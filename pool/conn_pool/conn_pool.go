@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	OutMaxConnError = errors.New("Out of maximum connection error ")
-	ConnCloseError  = errors.New("connection is close .... ")
+	ErrorOutMaxConn = errors.New("out of maximum connection error ")
+	ErrorConnClose  = errors.New("connection is close .... ")
 )
 
 var DefaultConnPool = newDefaultPool()
@@ -76,7 +76,7 @@ func (p *pool) Get(ctx context.Context, network string, address string) (net.Con
 		timeout := p.opts.DialTimeout
 		v, ok := ctx.Deadline()
 		if ok {
-			timeout = v.Sub(time.Now())
+			timeout = time.Until(v)
 		}
 		return net.DialTimeout(network, address, timeout)
 	}
@@ -117,7 +117,7 @@ type channelPool struct {
 // get 从连接池中获取一个conn连接.
 func (cp *channelPool) get(ctx context.Context) (*poolConn, error) {
 	if cp.ch == nil {
-		return nil, ConnCloseError
+		return nil, ErrorConnClose
 	}
 
 	// 无限循环保证一定会取得一个连接，无法取得连接的情况只会是拒绝策略.
@@ -136,7 +136,7 @@ func (cp *channelPool) get(ctx context.Context) (*poolConn, error) {
 			if int(cp.activeNum)+len(cp.ch) >= cp.maxIdle {
 				// TODO 拒绝策略
 				cp.mu.RUnlock()
-				return nil, OutMaxConnError
+				return nil, ErrorOutMaxConn
 			}
 			pc, err := cp.getPoolConn(ctx)
 			if err != nil {
@@ -146,6 +146,7 @@ func (cp *channelPool) get(ctx context.Context) (*poolConn, error) {
 			atomic.AddInt32(&cp.activeNum, 1)
 			return pc, nil
 		}
+		time.Sleep(200 * time.Millisecond)
 	}
 }
 
@@ -177,7 +178,6 @@ func (cp *channelPool) checkFreeConn(interval time.Duration, checker func(conn *
 							_ = cp.Put(conn)
 						}
 					default:
-						break
 					}
 				}
 			}
@@ -219,7 +219,7 @@ func (cp *channelPool) Close() {
 // Put 像线程池中加入一个连接.
 func (cp *channelPool) Put(conn *poolConn) error {
 	if conn == nil {
-		return ConnCloseError
+		return ErrorConnClose
 	}
 	cp.mu.RLock()
 	defer cp.mu.RUnlock()
@@ -297,7 +297,7 @@ func (cp *channelPool) wrapConn(conn net.Conn) *poolConn {
 // Write 为poolConn重写Conn接口的Write方法.
 func (conn *poolConn) Write(b []byte) (int, error) {
 	if conn.unusable {
-		return 0, ConnCloseError
+		return 0, ErrorConnClose
 	}
 	n, err := conn.Conn.Write(b)
 	if err != nil {
@@ -310,7 +310,7 @@ func (conn *poolConn) Write(b []byte) (int, error) {
 // Read 为poolConn重写Conn接口的Read方法.
 func (conn *poolConn) Read(b []byte) (int, error) {
 	if conn.unusable {
-		return 0, ConnCloseError
+		return 0, ErrorConnClose
 	}
 	n, err := conn.Conn.Read(b)
 	if err != nil {

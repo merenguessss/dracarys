@@ -1,3 +1,4 @@
+// client client端,主要包含client端调用的核心内容.
 package client
 
 import (
@@ -24,6 +25,7 @@ type defaultClient struct {
 	option *Options
 }
 
+// Invoke 动态代理函数,先加载client配置,再动态代理执行client的invoke函数.
 func (c *defaultClient) Invoke(ctx context.Context, req, rep interface{},
 	option ...Option) error {
 	for _, op := range option {
@@ -32,6 +34,8 @@ func (c *defaultClient) Invoke(ctx context.Context, req, rep interface{},
 	return interceptor.ClientInvoke(ctx, req, rep, c.invoke, c.option.beforeHandle)
 }
 
+// invoke client动态代理函数,client的核心函数.
+// 包括client所做的所有操作.
 func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error {
 	msg := c.getMsg()
 
@@ -53,7 +57,10 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 		return err
 	}
 
-	addr := c.findAddress()
+	addr, err := c.findAddress()
+	if err != nil {
+		return err
+	}
 
 	transportOption := []transport.ClientOption{
 		transport.WithAddr(addr),
@@ -90,10 +97,23 @@ func (c *defaultClient) NewClientTransport() transport.ClientTransport {
 	return transport.GetClientTransport("default")
 }
 
-func (c *defaultClient) findAddress() string {
-	return c.option.Addr
+// findAddress client端通过serviceName查询地址.
+// 其中应该包含服务发现->路由策略->负载均衡, 最终得到具体结点地址.
+func (c *defaultClient) findAddress() (string, error) {
+	slt := c.option.PluginFactory.GetSelector()
+
+	if err := slt.RegisterClient(c.option.ClientName, c.option.Addr); err != nil {
+		return "", err
+	}
+
+	nodes, err := slt.Select(c.option.serviceName)
+	if err != nil || len(nodes) <= 0 {
+		return "", err
+	}
+	return nodes[0].Value, nil
 }
 
+// 通过client中的配置生成Msg.
 func (c *defaultClient) getMsg() codec.Msg {
 	mb := codec.NewMsgBuilder()
 	return mb.WithCompressType(c.option.CompressType).
