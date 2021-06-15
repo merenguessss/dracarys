@@ -96,6 +96,7 @@ func (c *Consul) Select(name string) ([]*Node, error) {
 			Value: v.Address,
 			Meta:  v.Meta,
 		}
+		i++
 	}
 	return nodes, nil
 }
