@@ -1,10 +1,13 @@
 package selector
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/merenguessss/dracarys-go/log"
 )
 
 type Consul struct {
@@ -71,6 +74,7 @@ func (c *Consul) RegisterService(name, address string) error {
 		"weights":   "100",
 		"blacklist": "",
 		"whitelist": "",
+		"last_time": fmt.Sprintf("%d", time.Now().Unix()),
 	}
 
 	if err := c.client.Agent().ServiceRegister(registration); err != nil {
@@ -80,23 +84,25 @@ func (c *Consul) RegisterService(name, address string) error {
 }
 
 // Select 通过 Service.Name 查询具体结点.
-func (c *Consul) Select(name string) ([]*Node, error) {
+func (c *Consul) Select(name string) (*ServiceNodes, error) {
 	filter := "Service == \"" + name + "\""
 	services, err := c.client.Agent().ServicesWithFilter(filter)
 	if err != nil {
 		return nil, err
 	}
 
-	length := len(services)
-	nodes := make([]*Node, length)
-	i := 0
+	nodes := &ServiceNodes{
+		Name:  name,
+		Nodes: make([]*Node, 0),
+	}
 	for serviceName, v := range services {
-		nodes[i] = &Node{
-			Key:   serviceName,
-			Value: v.Address,
-			Meta:  v.Meta,
+		node, err := newNode(serviceName, v.Address, v.Meta)
+		if err != nil {
+			log.Error(err)
+			continue
 		}
-		i++
+
+		nodes.addNode(node)
 	}
 	return nodes, nil
 }
