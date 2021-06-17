@@ -1,9 +1,13 @@
 package plugin
 
-import "github.com/merenguessss/dracarys-go/plugin/selector"
+import (
+	"github.com/merenguessss/dracarys-go/plugin/balance"
+	"github.com/merenguessss/dracarys-go/plugin/selector"
+)
 
 type Options struct {
 	Selector *selector.Options `yaml:"selector"`
+	Balancer *balance.Options  `yaml:"balancer"`
 }
 
 type Option func(*Options)
