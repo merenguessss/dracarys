@@ -8,7 +8,7 @@ import (
 )
 
 type Balancer interface {
-	Get(string, *selector.ServiceNodes) *selector.Node
+	Get(*selector.ServiceNodes) *selector.Node
 }
 
 type Picker interface {
@@ -55,7 +55,7 @@ type RandomBalancer struct {
 }
 
 // Get 通过时间戳随机生成一个随机数,
-func (b *RandomBalancer) Get(name string, s *selector.ServiceNodes) *selector.Node {
+func (b *RandomBalancer) Get(s *selector.ServiceNodes) *selector.Node {
 	rand.Seed(time.Now().Unix())
 	randomNum := rand.Intn(s.Length)
 	return s.Nodes[randomNum]

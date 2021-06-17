@@ -62,7 +62,7 @@ func testBalancer(name string, n int) {
 	var lock sync.Mutex
 
 	for i := 0; i < n; i++ {
-		node := balancer.Get("name", serviceNodes)
+		node := balancer.Get(serviceNodes)
 		lock.Lock()
 		m[node.Value] = m[node.Value] + 1
 		lock.Unlock()

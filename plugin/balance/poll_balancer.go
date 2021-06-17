@@ -26,16 +26,16 @@ type pollPicker struct {
 }
 
 // Get 选择合适的选择器来进行选择.
-func (pb *PollBalancer) Get(name string, s *selector.ServiceNodes) *selector.Node {
+func (pb *PollBalancer) Get(s *selector.ServiceNodes) *selector.Node {
 	var picker Picker
-	if p, ok := pb.pickers.Load(name); !ok {
+	if p, ok := pb.pickers.Load(s.Name); !ok {
 		picker = &pollPicker{
 			lastIndex:    -1,
 			createTime:   time.Now(),
 			timeout:      pb.timeout,
 			serviceNodes: s,
 		}
-		pb.pickers.Store(name, picker)
+		pb.pickers.Store(s.Name, picker)
 	} else {
 		picker = p.(Picker)
 	}

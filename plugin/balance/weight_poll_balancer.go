@@ -25,16 +25,16 @@ type weightPollPicker struct {
 }
 
 // Get 获取具体选择器再通过选择器pick到具体结点.
-func (w *WeightPollBalancer) Get(name string, s *selector.ServiceNodes) *selector.Node {
+func (w *WeightPollBalancer) Get(s *selector.ServiceNodes) *selector.Node {
 	var picker Picker
-	if p, ok := w.pickers.Load(name); !ok {
+	if p, ok := w.pickers.Load(s.Name); !ok {
 		picker = &weightPollPicker{
 			createTime:   time.Now(),
 			timeout:      w.timeout,
 			serviceNodes: s,
 			weightMap:    getWeightMap(s),
 		}
-		w.pickers.Store(name, picker)
+		w.pickers.Store(s.Name, picker)
 	} else {
 		picker = p.(Picker)
 	}
