@@ -7,13 +7,13 @@ import (
 	"github.com/merenguessss/dracarys-go/plugin/selector"
 )
 
-var weightPollBalancer = &PollBalancer{
+var weightPollBalancer = &WeightPollBalancer{
 	pickers: new(sync.Map),
 	timeout: 2 * time.Second,
 }
 
 type WeightPollBalancer struct {
-	pickers sync.Map
+	pickers *sync.Map
 	timeout time.Duration
 }
 
@@ -56,8 +56,9 @@ func (wp *weightPollPicker) pick(s *selector.ServiceNodes) *selector.Node {
 	for k, v := range wp.weightMap {
 		v += k.Weight
 		wp.weightMap[k] = v
-		if cur > v {
+		if cur <= v {
 			max = k
+			cur = wp.weightMap[k]
 		}
 		totalWeight += v
 	}
