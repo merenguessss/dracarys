@@ -31,6 +31,9 @@ var DefaultConfig = func() *Options {
 				DeregisterCriticalServiceAfter: "20s",
 			},
 		},
+		Balancer: &balance.Options{
+			BalancerName: balance.WeightPoll,
+		},
 	}
 }
 
@@ -45,10 +48,17 @@ func (f *Factory) Setup(opts ...Option) error {
 	if err != nil {
 		return err
 	}
+
+	f.b = balance.Get(f.options.Balancer.BalancerName)
 	return nil
 }
 
 // GetSelector 获取服务发现插件.
 func (f *Factory) GetSelector() selector.Selector {
 	return f.s
+}
+
+// GetBalancer 获取负载均衡插件.
+func (f *Factory) GetBalancer() balance.Balancer {
+	return f.b
 }

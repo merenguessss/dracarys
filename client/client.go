@@ -3,6 +3,7 @@ package client
 
 import (
 	"context"
+	"errors"
 
 	"github.com/merenguessss/dracarys-go/codec"
 	"github.com/merenguessss/dracarys-go/codec/protocol"
@@ -11,6 +12,10 @@ import (
 	"github.com/merenguessss/dracarys-go/transport"
 )
 
+// ErrorServiceNotExist 服务不存在错误.
+var ErrorServiceNotExist = errors.New("service not exist")
+
+// Client 调用接口.
 type Client interface {
 	Invoke(ctx context.Context, req, rep interface{}, option ...Option) error
 }
@@ -107,10 +112,17 @@ func (c *defaultClient) findAddress() (string, error) {
 	}
 
 	nodes, err := slt.Select(c.option.serviceName)
-	if err != nil || len(nodes) <= 0 {
+	if err != nil {
 		return "", err
 	}
-	return nodes[0].Value, nil
+
+	if nodes.Length <= 0 {
+		return "", ErrorServiceNotExist
+	}
+
+	balancer := c.option.PluginFactory.GetBalancer()
+	node := balancer.Get(nodes)
+	return node.Value, nil
 }
 
 // 通过client中的配置生成Msg.

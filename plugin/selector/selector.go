@@ -11,7 +11,7 @@ type Selector interface {
 	RegisterClient(name, address string) error
 	RegisterService(name, address string) error
 	RegisterHeartbeat()
-	Select(string) ([]*Node, error)
+	Select(string) (*ServiceNodes, error)
 	LoadConfig(*Options) error
 }
 
