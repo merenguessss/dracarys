@@ -30,7 +30,7 @@ type Method struct {
 }
 
 type FilterFunc func(ctx context.Context, parse func(interface{}) error,
-	handlers []interceptor.Interceptor) (rep interface{}, err error)
+	handlers []interceptor.ServerHandler) (rep interface{}, err error)
 
 type service struct {
 	ctx         context.Context
@@ -49,11 +49,12 @@ func (s *service) Register(methodName string, method FilterFunc) {
 
 func (s *service) Serve(o *Options) error {
 	s.opt = o
+	slt := s.opt.PluginFactory.GetSelector()
 
 	tsOpt := []transport.ServerOption{
-		transport.WithAddress(s.opt.address),
-		transport.WithNetwork(s.opt.network),
-		transport.WithKeepAlivePeriod(s.opt.keepAlivePeriod),
+		transport.WithAddress(s.opt.Address),
+		transport.WithNetwork(s.opt.Network),
+		transport.WithKeepAlivePeriod(s.opt.KeepAlivePeriod),
 		transport.WithHandler(DefaultDispatcher),
 	}
 	st := transport.DefaultServerTransport
@@ -61,6 +62,11 @@ func (s *service) Serve(o *Options) error {
 	s.ctx, s.cancel = context.WithCancel(context.Background())
 	if err := st.ListenAndServe(s.ctx, tsOpt...); err != nil {
 		return errors.New(s.serviceName + " service transport error " + err.Error())
+	}
+
+	if err := slt.RegisterService(s.serviceName, s.opt.Address); err != nil {
+		return err
+		// todo log err
 	}
 
 	<-s.ctx.Done()
@@ -103,7 +109,7 @@ func (s *service) handle(msg codec.Msg, reqBuf []byte) ([]byte, error) {
 // updateMsg 刷新msg中的内容.
 func (s *service) updateMsg(msg codec.Msg) {
 	// todo msg.WithCompressType()
-	msg.WithSerializerType(s.opt.serializerType)
-	msg.WithPackageType(codec.StrToPackageType(s.opt.codecType))
+	msg.WithSerializerType(s.opt.SerializerType)
+	msg.WithPackageType(codec.StrToPackageType(s.opt.CodecType))
 	msg.WithReqType(codec.SendOnly)
 }

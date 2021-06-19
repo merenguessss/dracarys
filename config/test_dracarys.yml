@@ -1,0 +1,11 @@
+client:
+  serializer: proto
+
+server:
+  name: dracarys
+
+plugin:
+  selector:
+    name: default
+    heartbeat:
+      timeout: 2s

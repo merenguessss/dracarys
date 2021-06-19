@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"reflect"
+	"sync"
 
 	"github.com/merenguessss/dracarys-go/interceptor"
 )
@@ -40,7 +41,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 		method := srvType.Method(i)
 
 		methodFilter := func(ctx context.Context, parse func(interface{}) error,
-			beforeHandle []interceptor.Interceptor) (interface{}, error) {
+			beforeHandle []interceptor.ServerHandler) (interface{}, error) {
 			in := make([]interface{}, 0)
 			var params []reflect.Value
 
@@ -59,7 +60,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 				return value[0].Interface(), nil
 			}
 
-			return interceptor.Invoke(ctx, in, handler, beforeHandle)
+			return interceptor.ServerHandle(ctx, beforeHandle, handler, in)
 		}
 
 		methods[i] = &Method{
@@ -101,10 +102,16 @@ func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option)
 }
 
 func (s *Server) Serve() error {
+	var wg sync.WaitGroup
+	wg.Add(len(s.ServiceMap))
 	for _, v := range s.ServiceMap {
-		if err := v.Serve(s.Options); err != nil {
-			return err
-		}
+		go func(src Service) {
+			if err := src.Serve(s.Options); err != nil {
+				// log
+			}
+			wg.Done()
+		}(v)
 	}
+	wg.Wait()
 	return nil
 }

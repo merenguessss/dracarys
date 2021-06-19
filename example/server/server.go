@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/merenguessss/dracarys-go"
 	"github.com/merenguessss/dracarys-go/server"
-	"time"
 )
 
 func main() {
@@ -28,6 +29,12 @@ func main() {
 type Hello struct {
 }
 
-func (h *Hello) World(s string) (string, error) {
-	return "hello world " + s, nil
+func (h *Hello) World(s, t string) (Res, error) {
+	return Res{
+		"hello world " + s + t,
+	}, nil
+}
+
+type Res struct {
+	S string
 }
