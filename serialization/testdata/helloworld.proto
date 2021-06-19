@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package testdata;
+option go_package = "/";
+
+message PHello{
+    string msg = 1;
+}
