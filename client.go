@@ -7,6 +7,7 @@ import (
 
 	"github.com/merenguessss/dracarys-go/client"
 	"github.com/merenguessss/dracarys-go/config"
+	"github.com/merenguessss/dracarys-go/log"
 )
 
 type Client struct {
@@ -19,8 +20,7 @@ type Method func(...interface{}) (interface{}, error)
 func NewClient(opts ...client.Option) *Client {
 	o, err := config.GetClient()
 	if err != nil {
-		// todo log err
-		o = &client.Options{}
+		log.Fatal(err)
 	}
 
 	for _, op := range opts {
@@ -28,8 +28,7 @@ func NewClient(opts ...client.Option) *Client {
 	}
 
 	if err = o.PluginFactory.Setup(o.PluginFactoryOptions...); err != nil {
-		// todo log
-		// panic?
+		log.Fatal(err)
 	}
 	return &Client{
 		c: client.New(o),
