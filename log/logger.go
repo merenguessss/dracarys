@@ -196,7 +196,6 @@ var New = func(opts *Options) *logger {
 		}
 		out = logFile
 	}
-	fmt.Println(opts.Path)
 
 	return &logger{
 		log.New(out, fmt.Sprintf("%s[DRACARYS]%s", dracarys, reset), log.LstdFlags|log.Lshortfile),

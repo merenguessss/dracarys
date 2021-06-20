@@ -2,6 +2,7 @@ package selector
 
 import (
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,7 @@ type ServiceNodes struct {
 	Length int
 	// LastTime 服务最后更新时间.
 	LastTime time.Duration
+	mu       sync.RWMutex
 }
 
 // Node 服务结点.
@@ -35,11 +37,14 @@ type Node struct {
 
 // addNode 加入一个结点.
 func (s *ServiceNodes) addNode(node *Node) {
-	lastTime := time.Duration(node.LastTime)
+	lastTime := node.LastTime
 	if s.LastTime < lastTime {
 		s.LastTime = lastTime
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.Length++
 	s.Nodes = append(s.Nodes, node)
 }
 
