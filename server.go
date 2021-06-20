@@ -25,5 +25,6 @@ func NewServer(opts ...server.Option) *server.Server {
 		ServiceMap: make(map[string]server.Service),
 		Options:    o,
 	}
+	srv.PrintLogo()
 	return srv
 }
