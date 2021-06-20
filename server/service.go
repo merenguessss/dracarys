@@ -6,6 +6,7 @@ import (
 
 	"github.com/merenguessss/dracarys-go/codec"
 	"github.com/merenguessss/dracarys-go/interceptor"
+	"github.com/merenguessss/dracarys-go/log"
 	"github.com/merenguessss/dracarys-go/serialization"
 	"github.com/merenguessss/dracarys-go/transport"
 )
@@ -65,9 +66,9 @@ func (s *service) Serve(o *Options) error {
 	}
 
 	if err := slt.RegisterService(s.serviceName, s.opt.Address); err != nil {
-		return err
-		// todo log err
+		log.Warning(err)
 	}
+	log.Infof("service %s run %s", s.serviceName, s.opt.Address)
 
 	<-s.ctx.Done()
 	return nil

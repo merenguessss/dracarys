@@ -24,6 +24,12 @@ type Options struct {
 
 type Option func(*Options)
 
+func WithServerName(name string) Option {
+	return func(o *Options) {
+		o.ServerName = name
+	}
+}
+
 func WithPort(port string) Option {
 	return func(o *Options) {
 		o.Address = "127.0.0.1:" + port

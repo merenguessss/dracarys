@@ -2,6 +2,7 @@ package dracarys
 
 import (
 	"github.com/merenguessss/dracarys-go/config"
+	"github.com/merenguessss/dracarys-go/log"
 	"github.com/merenguessss/dracarys-go/server"
 )
 
@@ -9,8 +10,7 @@ import (
 func NewServer(opts ...server.Option) *server.Server {
 	o, err := config.GetServer()
 	if err != nil {
-		// todo log or panic
-		o = &server.Options{}
+		log.Fatal(err)
 	}
 
 	for _, op := range opts {
@@ -18,12 +18,13 @@ func NewServer(opts ...server.Option) *server.Server {
 	}
 
 	if err = o.PluginFactory.Setup(o.PluginFactoryOptions...); err != nil {
-		// todo log or panic
+		log.Fatal(err)
 	}
 
 	srv := &server.Server{
 		ServiceMap: make(map[string]server.Service),
 		Options:    o,
 	}
+	srv.PrintLogo()
 	return srv
 }

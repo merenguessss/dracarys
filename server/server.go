@@ -2,10 +2,13 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/merenguessss/dracarys-go/interceptor"
+	"github.com/merenguessss/dracarys-go/log"
 )
 
 type Server struct {
@@ -19,7 +22,7 @@ func (s *Server) RegisterService(serviceName string, service interface{}, option
 	sd := &ServiceDesc{
 		Svr:         service,
 		HandlerType: (*emptyHandlerType)(nil),
-		ServiceName: serviceName,
+		ServiceName: s.wrapServiceName(serviceName),
 	}
 
 	methods, err := s.getServiceMethod(service)
@@ -78,7 +81,7 @@ func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option)
 	handlerType := reflect.TypeOf(srvDesc.HandlerType).Elem()
 	srvType := reflect.TypeOf(srv)
 	if !srvType.Implements(handlerType) {
-		// log
+		log.Error("handler type error")
 		return
 	}
 
@@ -94,7 +97,7 @@ func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option)
 	}
 
 	if _, ok := s.ServiceMap[ser.serviceName]; ok {
-		// log has same service
+		log.Error("has same name service")
 	}
 
 	s.ServiceMap[ser.serviceName] = ser
@@ -107,11 +110,34 @@ func (s *Server) Serve() error {
 	for _, v := range s.ServiceMap {
 		go func(src Service) {
 			if err := src.Serve(s.Options); err != nil {
-				// log
+				log.Error(err)
 			}
 			wg.Done()
 		}(v)
 	}
 	wg.Wait()
 	return nil
+}
+
+// wrapServiceName 包装service name, 形成规范.
+func (s *Server) wrapServiceName(name string) string {
+	prefix := "dracarys.service."
+	res := name
+	if strings.HasPrefix(name, prefix) {
+		res = name[len(prefix):]
+	}
+
+	if s.Options.ServerName != "" {
+		res = s.Options.ServerName + "." + res
+	}
+	return prefix + res
+}
+
+func (s *Server) PrintLogo() {
+	fmt.Println(
+		"________________________________________________  _________\n" +
+			"___  __ \\__  __ \\__    |_  ____/__    |__  __ \\ \\/ /_  ___/\n" +
+			"__  / / /_  /_/ /_  /| |  /    __  /| |_  /_/ /_  /_____ \\ \n" +
+			"_  /_/ /_  _, _/_  ___ / /___  _  ___ |  _, _/_  / ____/ / \n" +
+			"/_____/ /_/ |_| /_/  |_\\____/  /_/  |_/_/ |_| /_/  /____/")
 }
