@@ -47,14 +47,41 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 			beforeHandle []interceptor.ServerHandler) (interface{}, error) {
 			in := make([]interface{}, 0)
 			var params []reflect.Value
+			numIn := method.Type.NumIn()
+			isPtr := make([]bool, numIn)
 
-			if err := parse(&in); err != nil {
-				return nil, err
+			for j := 1; j < numIn; j++ {
+				reqType := method.Type.In(j)
+				isPtr[j] = reqType.Kind() == reflect.Ptr
+				if isPtr[j] {
+					reqType = reqType.Elem()
+				}
+				in = append(in, reflect.New(reqType).Interface())
 			}
 
-			params = append(params, reflect.ValueOf(service))
-			for _, v := range in {
-				params = append(params, reflect.ValueOf(v))
+			inData := make([]interface{}, 0)
+			onlyParam := len(in) == 1
+			if !onlyParam {
+				if err := parse(&in); err != nil {
+					return nil, err
+				}
+				inData = append(inData, in...)
+			} else {
+				parseData := in[0]
+				if err := parse(parseData); err != nil {
+					return nil, err
+				}
+				inData = append(inData, parseData)
+			}
+
+			params = append(params, reflect.ValueOf(service), reflect.ValueOf(ctx))
+			for j, v := range inData {
+				value := reflect.ValueOf(v)
+				if !isPtr[j+1] {
+					// 如果不是指针类型需要先进行解引用.
+					value = value.Elem()
+				}
+				params = append(params, value)
 			}
 
 			handler := func(ctx context.Context, reqBody interface{}) (interface{}, error) {
