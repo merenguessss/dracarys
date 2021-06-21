@@ -47,8 +47,12 @@ func GetServerCodec(t uint8) codec.Codec {
 type pbClientCodec struct {
 }
 
+var serializerType string
+
 func (p *pbClientCodec) Encode(msg codec.Msg, bytes []byte) ([]byte, error) {
-	metadata := map[string][]byte{}
+	metadata := map[string][]byte{
+		serializerType: []byte(msg.SerializerType()),
+	}
 	req := &protocol.Request{
 		RequestId:   uint32(msg.RequestID()),
 		ServiceName: msg.ServerServiceName(),
@@ -70,6 +74,7 @@ func (p *pbClientCodec) Decode(msg codec.Msg, bytes []byte) ([]byte, error) {
 		return nil, errors.New(rep.RetMsg)
 	}
 	msg.WithRequestID(uint8(rep.RequestId))
+	msg.WithSerializerType(string(rep.Metadata[serializerType]))
 	return rep.Payload, nil
 }
 
@@ -81,7 +86,10 @@ func (p *pbServerCodec) Encode(msg codec.Msg, b []byte) ([]byte, error) {
 		RetCode:   msg.RetCode(),
 		RetMsg:    msg.RetMsg(),
 		RequestId: uint32(msg.RequestID()),
-		Payload:   b,
+		Metadata: map[string][]byte{
+			serializerType: []byte(msg.SerializerType()),
+		},
+		Payload: b,
 	}
 	return proto.Marshal(rep)
 }
@@ -92,6 +100,7 @@ func (p *pbServerCodec) Decode(msg codec.Msg, b []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	msg.WithSerializerType(string(req.Metadata[serializerType]))
 	msg.WithServerServiceName(req.ServiceName)
 	msg.WithRPCMethodName(req.MethodName)
 	msg.WithRequestID(uint8(req.RequestId))

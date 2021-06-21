@@ -91,7 +91,7 @@ func (c *defaultClient) invoke(ctx context.Context, req, rep interface{}) error 
 	}
 
 	serializer = serialization.Get(msg.SerializerType())
-	err = serializer.Unmarshal(repBuf, &rep)
+	err = serializer.Unmarshal(repBuf, rep)
 	if err != nil {
 		return err
 	}
@@ -105,6 +105,9 @@ func (c *defaultClient) NewClientTransport() transport.ClientTransport {
 // findAddress client端通过serviceName查询地址.
 // 其中应该包含服务发现->路由策略->负载均衡, 最终得到具体结点地址.
 func (c *defaultClient) findAddress() (string, error) {
+	if c.option.Addr != "" {
+		return c.option.Addr, nil
+	}
 	slt := c.option.PluginFactory.GetSelector()
 
 	if err := slt.RegisterClient(c.option.ClientName, c.option.Addr); err != nil {
