@@ -50,7 +50,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 			numIn := method.Type.NumIn()
 			isPtr := make([]bool, numIn)
 
-			for j := 1; j < numIn; j++ {
+			for j := 2; j < numIn; j++ {
 				reqType := method.Type.In(j)
 				isPtr[j] = reqType.Kind() == reflect.Ptr
 				if isPtr[j] {
@@ -77,7 +77,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 			params = append(params, reflect.ValueOf(service), reflect.ValueOf(ctx))
 			for j, v := range inData {
 				value := reflect.ValueOf(v)
-				if !isPtr[j+1] {
+				if !isPtr[j+2] {
 					// 如果不是指针类型需要先进行解引用.
 					value = value.Elem()
 				}
