@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -29,10 +30,8 @@ func main() {
 type Hello struct {
 }
 
-func (h *Hello) World(s, t string) (Res, error) {
-	return Res{
-		"hello world " + s + t,
-	}, nil
+func (h *Hello) World(ctx context.Context, s string) (string, error) {
+	return "hello world " + s, nil
 }
 
 type Res struct {

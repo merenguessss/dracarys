@@ -17,6 +17,30 @@ type Client struct {
 
 type Method func(...interface{}) (interface{}, error)
 
+// NewClientOpts 创建client的配置.
+func NewClientOpts(opts ...client.Option) *client.Options {
+	o, err := config.GetClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, op := range opts {
+		op(o)
+	}
+
+	if err = o.PluginFactory.Setup(o.PluginFactoryOptions...); err != nil {
+		log.Fatal(err)
+	}
+	return o
+}
+
+// NewClientWithOpts 通过client的配置生成Client进行调用.
+func NewClientWithOpts(opts *client.Options) *Client {
+	return &Client{
+		c: client.New(opts),
+	}
+}
+
 func NewClient(opts ...client.Option) *Client {
 	o, err := config.GetClient()
 	if err != nil {
@@ -49,22 +73,22 @@ func (c *Client) CallWithReturnValue(methodName string, rep interface{}, req ...
 // Call 通过MethodName定位请求到具体的req.
 func (c *Client) Call(methodName string, req ...interface{}) (interface{}, error) {
 	c.opts = append(c.opts, client.WithMethod(methodName))
-	var rep interface{}
+	rep := new(interface{})
 	if err := c.call(context.Background(), c.opts, rep, req...); err != nil {
 		return nil, err
 	}
-	return rep, nil
+	return *rep, nil
 }
 
 // Method 获取具体Method.
 func (c *Client) Method(name string) Method {
 	c.opts = append(c.opts, client.WithMethod(name))
 	return func(req ...interface{}) (interface{}, error) {
-		var rep interface{}
+		rep := new(interface{})
 		if err := c.call(context.Background(), c.opts, rep, req...); err != nil {
 			return nil, err
 		}
-		return rep, nil
+		return *rep, nil
 	}
 }
 
@@ -76,11 +100,11 @@ func (c *Client) ServiceAndMethod(name string) (Method, error) {
 	}
 	c.opts = append(c.opts, client.WithService(serviceName), client.WithMethod(methodName))
 	return func(req ...interface{}) (interface{}, error) {
-		var rep interface{}
+		rep := new(interface{})
 		if err := c.call(context.Background(), c.opts, rep, req...); err != nil {
 			return nil, err
 		}
-		return rep, nil
+		return *rep, nil
 	}, nil
 }
 
