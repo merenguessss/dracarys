@@ -30,10 +30,11 @@ type Method struct {
 	Func FilterFunc
 }
 
-type FilterFunc func(ctx context.Context, parse func(interface{}) error,
+type FilterFunc func(ctx context.Context, srv interface{}, parse func(interface{}) error,
 	handlers []interceptor.ServerHandler) (rep interface{}, err error)
 
 type service struct {
+	srv         interface{}
 	ctx         context.Context
 	cancel      context.CancelFunc
 	serviceName string
@@ -92,7 +93,7 @@ func (s *service) handle(msg codec.Msg, reqBuf []byte) ([]byte, error) {
 	}
 
 	handle := s.handles[msg.RPCMethodName()]
-	rep, err := handle(s.ctx, parser, s.opt.beforeHandle)
+	rep, err := handle(s.ctx, s.srv, parser, s.opt.beforeHandle)
 	if err != nil {
 		return nil, err
 	}
