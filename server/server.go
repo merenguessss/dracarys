@@ -43,7 +43,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 	for i := 0; i < n; i++ {
 		method := srvType.Method(i)
 
-		methodFilter := func(ctx context.Context, parse func(interface{}) error,
+		methodFilter := func(ctx context.Context, srv interface{}, parse func(interface{}) error,
 			beforeHandle []interceptor.ServerHandler) (interface{}, error) {
 			in := make([]interface{}, 0)
 			var params []reflect.Value
@@ -113,6 +113,7 @@ func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option)
 	}
 
 	ser := &service{
+		srv:         srv,
 		serviceName: srvDesc.ServiceName,
 		handles:     make(map[string]FilterFunc),
 	}

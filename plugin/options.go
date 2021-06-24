@@ -59,3 +59,9 @@ func WithSelectorDeregisterCriticalServiceAfter(t string) Option {
 		o.Selector.HeartbeatOptions.DeregisterCriticalServiceAfter = t
 	}
 }
+
+func WithBalancerName(name string) Option {
+	return func(o *Options) {
+		o.Balancer.BalancerName = name
+	}
+}
