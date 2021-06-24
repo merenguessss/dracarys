@@ -70,6 +70,10 @@ func (c *Client) CallWithReturnValue(methodName string, rep interface{}, req ...
 	return c.call(context.Background(), c.opts, rep, req...)
 }
 
+func (c *Client) Invoke(ctx context.Context, req, rep interface{}, option ...client.Option) error {
+	return c.c.Invoke(ctx, req, rep, c.opts...)
+}
+
 // Call 通过MethodName定位请求到具体的req.
 func (c *Client) Call(methodName string, req ...interface{}) (interface{}, error) {
 	c.opts = append(c.opts, client.WithMethod(methodName))
