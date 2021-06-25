@@ -5,11 +5,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/merenguessss/dracarys-go/codec"
-	"github.com/merenguessss/dracarys-go/codec/protocol"
-	"github.com/merenguessss/dracarys-go/interceptor"
-	"github.com/merenguessss/dracarys-go/serialization"
-	"github.com/merenguessss/dracarys-go/transport"
+	"github.com/merenguessss/dracarys/codec"
+	"github.com/merenguessss/dracarys/codec/protocol"
+	"github.com/merenguessss/dracarys/interceptor"
+	"github.com/merenguessss/dracarys/serialization"
+	"github.com/merenguessss/dracarys/transport"
 )
 
 // ErrorServiceNotExist 服务不存在错误.

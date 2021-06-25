@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/merenguessss/dracarys-go/plugin/selector"
+	"github.com/merenguessss/dracarys/plugin/selector"
 )
 
 var pollBalancer = &PollBalancer{

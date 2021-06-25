@@ -3,8 +3,8 @@ package protocol
 import (
 	"errors"
 
-	"github.com/merenguessss/dracarys-go/codec"
-	"github.com/merenguessss/dracarys-go/protocol"
+	"github.com/merenguessss/dracarys/codec"
+	"github.com/merenguessss/dracarys/protocol"
 	"google.golang.org/protobuf/proto"
 )
 

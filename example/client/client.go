@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/merenguessss/dracarys-go"
-	"github.com/merenguessss/dracarys-go/client"
+	"github.com/merenguessss/dracarys"
+	"github.com/merenguessss/dracarys/client"
 )
 
 func main() {

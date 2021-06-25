@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/merenguessss/dracarys-go/log"
-	"github.com/merenguessss/dracarys-go/plugin/selector"
+	"github.com/merenguessss/dracarys/log"
+	"github.com/merenguessss/dracarys/plugin/selector"
 )
 
 var t = time.Now().Unix()

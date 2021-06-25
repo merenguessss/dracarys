@@ -5,9 +5,9 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/merenguessss/dracarys-go/client"
-	"github.com/merenguessss/dracarys-go/config"
-	"github.com/merenguessss/dracarys-go/log"
+	"github.com/merenguessss/dracarys/client"
+	"github.com/merenguessss/dracarys/config"
+	"github.com/merenguessss/dracarys/log"
 )
 
 type Client struct {

@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/merenguessss/dracarys-go/plugin/selector"
+	"github.com/merenguessss/dracarys/plugin/selector"
 )
 
 type Balancer interface {

@@ -7,10 +7,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/merenguessss/dracarys-go/client"
-	"github.com/merenguessss/dracarys-go/log"
-	"github.com/merenguessss/dracarys-go/plugin"
-	"github.com/merenguessss/dracarys-go/server"
+	"github.com/merenguessss/dracarys/client"
+	"github.com/merenguessss/dracarys/log"
+	"github.com/merenguessss/dracarys/plugin"
+	"github.com/merenguessss/dracarys/server"
 
 	"gopkg.in/yaml.v3"
 )

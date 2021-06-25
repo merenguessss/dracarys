@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/merenguessss/dracarys-go/interceptor"
-	"github.com/merenguessss/dracarys-go/plugin"
+	"github.com/merenguessss/dracarys/interceptor"
+	"github.com/merenguessss/dracarys/plugin"
 )
 
 type Options struct {

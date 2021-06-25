@@ -1,8 +1,8 @@
 package plugin
 
 import (
-	"github.com/merenguessss/dracarys-go/plugin/balance"
-	"github.com/merenguessss/dracarys-go/plugin/selector"
+	"github.com/merenguessss/dracarys/plugin/balance"
+	"github.com/merenguessss/dracarys/plugin/selector"
 )
 
 type Options struct {
