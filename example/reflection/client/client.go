@@ -22,7 +22,3 @@ func main() {
 	}
 	fmt.Println(res)
 }
-
-type Res struct {
-	S string
-}

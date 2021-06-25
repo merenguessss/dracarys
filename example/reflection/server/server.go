@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/merenguessss/dracarys"
+	"github.com/merenguessss/dracarys/log"
 	"github.com/merenguessss/dracarys/server"
 )
 
@@ -19,11 +19,11 @@ func main() {
 	srv := dracarys.NewServer(opts...)
 	err := srv.RegisterService("Hello", &Hello{})
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	if err := srv.Serve(); err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 }
 
@@ -32,8 +32,4 @@ type Hello struct {
 
 func (h *Hello) World(ctx context.Context, s string) (string, error) {
 	return "hello world " + s, nil
-}
-
-type Res struct {
-	S string
 }
