@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/merenguessss/dracarys-go/log"
+	"github.com/merenguessss/dracarys/log"
 )
 
 type Consul struct {

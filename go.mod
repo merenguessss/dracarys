@@ -1,4 +1,4 @@
-module github.com/merenguessss/dracarys-go
+module github.com/merenguessss/dracarys
 
 go 1.16
 

@@ -3,7 +3,7 @@ package protocol
 import (
 	"testing"
 
-	"github.com/merenguessss/dracarys-go/codec"
+	"github.com/merenguessss/dracarys/codec"
 )
 
 func TestClientEncode(t *testing.T) {

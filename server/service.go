@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/merenguessss/dracarys-go/codec"
-	"github.com/merenguessss/dracarys-go/interceptor"
-	"github.com/merenguessss/dracarys-go/log"
-	"github.com/merenguessss/dracarys-go/serialization"
-	"github.com/merenguessss/dracarys-go/transport"
+	"github.com/merenguessss/dracarys/codec"
+	"github.com/merenguessss/dracarys/interceptor"
+	"github.com/merenguessss/dracarys/log"
+	"github.com/merenguessss/dracarys/serialization"
+	"github.com/merenguessss/dracarys/transport"
 )
 
 type Service interface {

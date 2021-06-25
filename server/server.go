@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/merenguessss/dracarys-go/interceptor"
-	"github.com/merenguessss/dracarys-go/log"
+	"github.com/merenguessss/dracarys/interceptor"
+	"github.com/merenguessss/dracarys/log"
 )
 
 type Server struct {

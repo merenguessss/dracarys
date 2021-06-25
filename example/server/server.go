@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/merenguessss/dracarys-go"
-	"github.com/merenguessss/dracarys-go/server"
+	"github.com/merenguessss/dracarys"
+	"github.com/merenguessss/dracarys/server"
 )
 
 func main() {
