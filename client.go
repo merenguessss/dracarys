@@ -70,7 +70,9 @@ func (c *Client) CallWithReturnValue(methodName string, rep interface{}, req ...
 	return c.call(context.Background(), c.opts, rep, req...)
 }
 
-func (c *Client) Invoke(ctx context.Context, req, rep interface{}, option ...client.Option) error {
+func (c *Client) Invoke(ctx context.Context, methodName string, req, rep interface{},
+	option ...client.Option) error {
+	c.opts = append(c.opts, option...)
 	c.opts = append(c.opts, option...)
 	return c.c.Invoke(ctx, req, rep, c.opts...)
 }
