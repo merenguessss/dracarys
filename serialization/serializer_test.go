@@ -3,7 +3,7 @@ package serialization
 import (
 	"testing"
 
-	"github.com/merenguessss/dracarys-go/serialization/testdata"
+	"github.com/merenguessss/dracarys/serialization/testdata"
 )
 
 var pbHello = &testdata.PHello{
