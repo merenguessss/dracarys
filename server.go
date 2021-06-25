@@ -1,9 +1,9 @@
 package dracarys
 
 import (
-	"github.com/merenguessss/dracarys-go/config"
-	"github.com/merenguessss/dracarys-go/log"
-	"github.com/merenguessss/dracarys-go/server"
+	"github.com/merenguessss/dracarys/config"
+	"github.com/merenguessss/dracarys/log"
+	"github.com/merenguessss/dracarys/server"
 )
 
 // NewServer 创建server端,用于注册service以及监听.
