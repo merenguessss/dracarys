@@ -244,8 +244,7 @@ func NewGreeterClient(opts ...client.Option) GreeterClient {
 func (c *greeterClient) SayHello(ctx context.Context, in *HelloRequest, opts ...client.Option) (*HelloReply, error) {
 	out := new(HelloReply)
 	c.client.Service("dracarys.service.helloworld.Greeter")
-	c.client.Method("SayHello")
-	err := c.client.Invoke(ctx, in, out, opts...)
+	err := c.client.Invoke(ctx, "SayHello", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
