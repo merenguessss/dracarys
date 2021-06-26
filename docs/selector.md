@@ -6,7 +6,7 @@
 
 服务中心被`Dracarys`用作插件使用，所以服务中心的配置在插件配置中。
 
-服务中心的配置如下：
+服务中心的配置参数如下：
 
 **name**
 
@@ -103,3 +103,40 @@ selector.Register("selectorName",mySelector)
 配置方式见上文（[配置](#配置)）
 
 **服务中心名称改为当前自定义服务中心即可。**
+
+### 服务节点
+
+`Dracarys`将从服务中心获取到的服务节点封装为了一个结构体：
+
+```go
+// ServiceNodes 单个服务.
+type ServiceNodes struct {
+	// Name 服务名.
+	Name string
+	// Nodes 服务结点.
+	Nodes []*Node
+	// 结点数.
+	Length int
+	// LastTime 服务最后更新时间.
+	LastTime time.Duration
+	mu       sync.RWMutex
+}
+
+// Node 服务结点.
+type Node struct {
+	// Key   键: 服务名.
+	Key string
+	// Value 值: 结点ip地址.
+	Value string
+	// Blacklist 黑名单.
+	Blacklist string
+	// Whitelist 白名单.
+	Whitelist string
+	// Weight 权重.
+	Weight float64
+	// LastTime 最新更新时间.
+	LastTime time.Duration
+}
+```
+
+从接口`Select`即可得到`ServiceNodes`返回值。
