@@ -72,7 +72,7 @@ func (c *Client) CallWithReturnValue(methodName string, rep interface{}, req ...
 
 func (c *Client) Invoke(ctx context.Context, methodName string, req, rep interface{},
 	option ...client.Option) error {
-	c.opts = append(c.opts, option...)
+	c.opts = append(c.opts, client.WithMethod(methodName))
 	c.opts = append(c.opts, option...)
 	return c.c.Invoke(ctx, req, rep, c.opts...)
 }
