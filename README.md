@@ -8,18 +8,18 @@
 
 在Go module支持下，你只需要简单执行以下命令进行导入：
 ```
-import "github.com/merenguessss/dracarys-go"
+import "github.com/merenguessss/dracarys"
 ```
 在你的代码中执行执行 go [build | run | test] 时会自动下载依赖项。
 
 否则，请执行以下命令进行安装：
 ```
-go get -u github.com/merenguessss/dracarys-go
+go get -u github.com/merenguessss/dracarys
 ```
 ## 快速开始
 下面展示一个最简单的例子：
 ```
-git clone https://github.com/merenguessss/dracarys-go.git
+git clone https://github.com/merenguessss/dracarys.git
 #server
 cd example/reflection/server
 go run main.go
