@@ -28,6 +28,8 @@ func (h *Hello) World(ctx context.Context, s string) (string, error) {
 	return "hello world " + s, nil
 }
 ```
+**注：注册服务方法的第一个入参必须为```context.Context```**
+
 **2. 通过一个server发布服务**
 ```go
 func main() {
