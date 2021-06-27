@@ -101,7 +101,7 @@ client := dracarys.NewClient(opts...)
 ### Header
 `header`中包括以下几个部分：
 
-![header](docs/pic/header.png)
+![header](docs/pic/Header.png)
 
 **Magic**
 
