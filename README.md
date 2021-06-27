@@ -1,5 +1,6 @@
 # Dracarys
-**Dracarys**是一个轻量级、高性能、开源、可插拔的RPC框架。
+**Dracarys**是一个轻量级💨、高性能🚀、开源🌟、可插拔🐲的RPC框架。
+
 ## 证书
 `Dracarys`的源码允许用户在遵循[MIT 开源证书](LICENSE) 规则的前提下使用。
 ## 安装
@@ -166,3 +167,27 @@ message Response{
 序列化后的请求或响应内容。
 
 ## 性能
+
+这里取`grpc`和`Dracarys`进行性能对比。
+
+对两个框架进行三次测试，进行100w次请求，对三次测试结果取最大值。
+
+`Dracarys`:
+```
+[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] total req  : 1000000
+[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] success num: 1000000
+[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] fail  bum  : 0
+[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] total time : 25733
+[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] tps        : 38860
+```
+
+在同样的环境下，对`grpc`进行测试
+
+`grpc`:
+```
+[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] total req  : 1000000
+[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] success num: 1000000
+[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] fail  bum  : 0
+[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] total time : 57381
+[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] tps        : 17427
+```
