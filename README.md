@@ -176,7 +176,7 @@ message Response{
 ```
 [DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] total req  : 1000000
 [DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] success num: 1000000
-[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] fail  bum  : 0
+[DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] fail  num  : 0
 [DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] total time : 25733
 [DRACARYS]2021/06/27 12:10:51 proc.go:225: [INFO] tps        : 38860
 ```
@@ -187,7 +187,7 @@ message Response{
 ```
 [DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] total req  : 1000000
 [DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] success num: 1000000
-[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] fail  bum  : 0
+[DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] fail  num  : 0
 [DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] total time : 57381
 [DRACARYS]2021/06/27 12:17:04 proc.go:225: [INFO] tps        : 17427
 ```
