@@ -39,6 +39,13 @@ type workpool struct {
 	stop             bool
 }
 
+func NewPool(handle func(net.Conn) error) *workpool {
+	return &workpool{
+		handle:          handle,
+		maxWorkersCount: 256 * 1024,
+	}
+}
+
 var workerChanCap = func() int {
 	if runtime.GOMAXPROCS(0) == 1 {
 		return 0
