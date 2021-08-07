@@ -67,7 +67,7 @@ func (s *service) Serve(o *Options) error {
 	}
 
 	if err := slt.RegisterService(s.serviceName, s.opt.Address); err != nil {
-		log.Warning(err)
+		log.Warning("The service may not be registered with the name service")
 	}
 	log.Infof("service %s run %s", s.serviceName, s.opt.Address)
 
