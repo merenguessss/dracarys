@@ -93,7 +93,7 @@ func (wp *workpool) Stop() {
 		ready[i].ch <- nil
 		ready[i] = nil
 	}
-	ready = ready[:0]
+	wp.ready = ready[:0]
 	wp.stop = true
 	wp.mu.Unlock()
 }
@@ -136,9 +136,11 @@ func (wp *workpool) clean(wc *[]*workChan) {
 	}
 }
 
+var defaultMaxWorkerTime = 10 * time.Second
+
 func (wp *workpool) getMaxWorkerTime() time.Duration {
 	if wp.maxWorkerTime <= 0 {
-		return 10 * time.Second
+		return defaultMaxWorkerTime
 	}
 	return wp.maxWorkerTime
 }
@@ -169,7 +171,7 @@ func (wp *workpool) getWorkChan() *workChan {
 
 	ch = ready[n]
 	ready[n] = nil
-	ready = ready[:0]
+	wp.ready = ready[:0]
 	wp.mu.Unlock()
 	return ch
 }
