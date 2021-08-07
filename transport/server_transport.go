@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"net"
 	"time"
 
 	"github.com/merenguessss/dracarys/codec"
+	"github.com/merenguessss/dracarys/log"
+	"github.com/merenguessss/dracarys/pool/work_pool"
 )
 
 func init() {
@@ -69,7 +70,7 @@ func (st *defaultServerTransport) serveTCP(ctx context.Context) error {
 
 	go func() {
 		if err := st.serve(ctx, lis); err != nil {
-			log.Println("serve error")
+			log.Error("serve error")
 		}
 	}()
 	return nil
@@ -82,6 +83,15 @@ func (st *defaultServerTransport) serve(ctx context.Context, lis net.Listener) e
 		return errors.New("network not support")
 	}
 
+	handle := func(conn net.Conn) error {
+		if err := st.handleConn(ctx, conn); err != nil {
+			return err
+		}
+		return nil
+	}
+	wp := work_pool.NewPool(handle)
+	wp.Start()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -91,6 +101,7 @@ func (st *defaultServerTransport) serve(ctx context.Context, lis net.Listener) e
 
 		conn, err := tcpLis.AcceptTCP()
 		if err != nil {
+			wp.Stop()
 			netError, ok := err.(net.Error)
 			if !ok {
 				return err
@@ -119,11 +130,9 @@ func (st *defaultServerTransport) serve(ctx context.Context, lis net.Listener) e
 			return err
 		}
 
-		go func() {
-			if err := st.handleConn(ctx, conn); err != nil {
-				log.Print(err)
-			}
-		}()
+		if !wp.Serve(conn) {
+			log.Error("can't serve more conn")
+		}
 	}
 }
 

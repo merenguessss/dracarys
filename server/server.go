@@ -25,17 +25,14 @@ func (s *Server) RegisterService(serviceName string, service interface{}, option
 		ServiceName: s.wrapServiceName(serviceName),
 	}
 
-	methods, err := s.getServiceMethod(service)
-	if err != nil {
-		return err
-	}
+	methods := s.getServiceMethod(service)
 
 	sd.Methods = methods
 	s.Register(sd, service, options...)
 	return nil
 }
 
-func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
+func (s *Server) getServiceMethod(service interface{}) []*Method {
 	srvType := reflect.TypeOf(service)
 	n := srvType.NumMethod()
 	methods := make([]*Method, n)
@@ -98,7 +95,7 @@ func (s *Server) getServiceMethod(service interface{}) ([]*Method, error) {
 			Func: methodFilter,
 		}
 	}
-	return methods, nil
+	return methods
 }
 
 func (s *Server) Register(srvDesc *ServiceDesc, srv interface{}, opts ...Option) {
